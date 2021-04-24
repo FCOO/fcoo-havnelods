@@ -126,9 +126,16 @@
         }
 
         this.latLng     = L.latLng(this.position);
+
+        this.color = options.color || bsMarkerOptions.colorName;
+        this.header = {
+            icon: L.bsMarkerAsIcon(this.color),
+            text: this.name
+        };
     };
 
 
+    var imgWidth = 300;
     Location.prototype = {
         createMarker: function(){
             var markerOptions =
@@ -140,21 +147,19 @@
 
             return L.bsMarkerCircle( this.latLng, markerOptions)
                         .bindPopup({
-                            width: 306,
-
-//HER                            flexWidth: true,
+                            width: imgWidth + 6,
+                            //flexWidth: true,
                             fixable : true,
 
                             noVerticalPadding  :  true,
                             noHorizontalPadding: true,
 
-                            onNew : this_show,
-                            header:{
-                                icon: L.bsMarkerAsIcon(markerOptions.colorName),
-                                text: this.name
-                            },
-                            content: $('<img src="https://www.danskehavnelods.dk/planer/jpg_70/LF_AGRNS.jpg" style="max-width:300px"/>'),
-                            buttons:[{
+                            onNew   : this_show,
+                            header  : this.header,
+                            content : $('<img src="https://www.danskehavnelods.dk/planer/jpg_70/LF_AGRNS.jpg"/>')
+                                        .css('max-width', imgWidth+'px')
+                                        .on('click', this_show),
+                            buttons: [{
                                 id      :'dhl_show'+this.id,
                                 _icon    : 'fa-window-maximize',
                                 icon    : $.bsNotyIcon.info,
@@ -172,24 +177,10 @@
         show: function(){
                 $.bsModalFile(
                     'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=' + (this.type == 'bro' ? 1 : 0) + '&ID='+this.id + '&NR=2',
-                    {header: 'PDF'}
+                    {header: this.header}
                 );
         }
     };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }(jQuery, L, this, document));
 
 

@@ -1,5 +1,5 @@
 /***********************************************
-	fcoo-danskehavnelods.scss, 
+	fcoo-danskehavnelods.scss,
 
 	(c) 2021, FCOO
 
@@ -17,3 +17,19 @@
 //MATHSASS - https://github.com/terkel/mathsass
 @import "../bower_components/mathsass/dist/math";
 
+
+//LEAFLET-BOOTSTRAP_MARKER - mixin to create colors for bsMarker
+@import "../bower_components/sass-color-helpers/stylesheets/color-helpers";
+@import "../bower_components/leaflet-bootstrap-marker/src/leaflet-bootstrap-marker-mixin";
+
+
+//Create the classes to give the marker the 'pink' color
+$dark-purple: #e2007a; //Same as in leaflet-bootstrap-niord. TODO: CREATE COMMON MIXIN WITH THIS COLOR
+@include lbm-marker-and-icon-classes( navigation, $dark-purple );
+
+
+//Super optimizing
+.port_icon_adjust {
+    position: relative;
+    left    : -1px;
+}

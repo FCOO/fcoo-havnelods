@@ -75754,8 +75754,8 @@ options
             fileNameExt = window.url('fileext', theFileName),
             $content,
             footer = {
-                da: 'Hvis filen ikke kan vises, klik på <i class="fas ' + $.bsExternalLinkIcon + '"/> for at se dokumentet i en ny fane',
-                en: 'If the file doesn\'t show correctly click on <i class="fas ' + $.bsExternalLinkIcon + '"/> to see the document in a new Tab Page'
+                da: 'Hvis filen ikke kan vises, klik på <i class="fas ' + $.bsExternalLinkIcon + '"></i> for at se dokumentet i en ny fane',
+                en: 'If the file doesn\'t show correctly click on <i class="fas ' + $.bsExternalLinkIcon + '"></i> to see the document in a new Tab Page'
             },
             fullWidth       = true,
             noPadding       = true,
@@ -100615,21 +100615,63 @@ Base object-class for all type of markers
     L.bsMarkerAsIcon
     Return the options to create a icon locking like a bsMarker[TYPE]
     with the given color and border-color
-    Can be used in two ways:
-        1: L.bsMarkerAsIcon(colorName, borderColorName, options)
-              options = {faClassName (default = 'fa-circle'), extraClassName (default = '')}
-        2: L.bsMarkerAsIcon(colorName, borderColorName, faClassName[String])
+    Can be used in four ways:
+        1:  L.bsMarkerAsIcon(options: OBJECT)
+                options = same as for BsMarkerBase BsMarkerCircle
+
+        2:  L.bsMarkerAsIcon(colorName: STRING, borderColorName: STRING, round: BOOLEAN = true)
+
+        3:  L.bsMarkerAsIcon(colorName: STRING, borderColorName: STRING, faClassName: STRING)
+
+        4:  L.bsMarkerAsIcon(colorName: STRING, borderColorName: STRING, options: OBJECT)
+                options = {
+                    faClassName   : STRING (default = 'fa-circle'),
+                    extraClassName: STRING (default = '')}
+                }
     *****************************************************/
-    L.bsMarkerAsIcon = function(colorName, borderColorName, faClassNameOrOptions){
-        var options =   faClassNameOrOptions ?
-                            $.type(faClassNameOrOptions) == 'string' ?
-                                options = {faClassName: faClassNameOrOptions} :
-                                options = faClassNameOrOptions
-                            : null;
+    L.bsMarkerAsIcon = function(a, b = '', c = true){
+        var colorName       = 'white',
+            borderColorName = 'black',
+            options         = {};
+
+        //1: (OBJECT)
+        if (typeof a === 'object'){
+            colorName       = a.colorName || colorName;
+            borderColorName = a.borderColorName || borderColorName;
+            if (a.noBorder)
+                borderColorName = colorName;
+
+            options.faClassName = a.faClassName || '';
+            if (!options.faClassName && (a.round === false))
+                options.faClassName = 'fa-square';
+        }
+        else {
+            //2:, 3:, or 4:
+            colorName = a || colorName;
+            borderColorName = b || borderColorName;
+
+            if (typeof c === 'boolean')
+                //2: (STRING, STRING, BOOLEAN)
+                if (!c)
+                    options.faClassName = 'fa-square';
+
+            else
+
+            if (typeof c === 'string')
+                //3: (STRING, STRING, STRING)
+                options.faClassName = c;
+
+            else
+
+            if (typeof c === 'object')
+                //4: (STRING, STRING, OBJECT)
+                options = c;
+
+        }
 
         return $.bsMarkerAsIcon(
-                    'fa-lbm-color-'+(colorName || 'white'),
-                    'fa-lbm-border-color-'+(borderColorName || 'black'),
+                    'fa-lbm-color-'+colorName,
+                    'fa-lbm-border-color-'+borderColorName,
                     options
                );
     };
@@ -100667,11 +100709,14 @@ Base object-class for all type of markers
             shadow          : false, //true to add a shadow to the marker
             puls            : false, //true to have a pulsart icon
             thickBorder     : false, //true to have thicker border
+            thinBorder      : false, //True to have a thin border
+            noBorder        : false, //True to have no border
 
-            optionsWithClass: ['transparent', 'shadow', 'hover', 'thickBorder', 'puls'],
+            optionsWithClass: ['transparent', 'shadow', 'hover', 'thickBorder', 'thinBorder', 'noBorder', 'puls'],
 
-            colorName      : '',    //or fillColor: Name of inside fill-color of the marker
-            borderColorName: '',    //or lineColor: Name of border/line-color of the marker
+            colorName      : '',    //or fillColorName: Name of inside fill-color of the marker
+            borderColorName: '',    //or lineColorName: Name of border/line-color of the marker
+            iconColorName  : '',    //or textColorName: Name of color of the inner icon or text
 
             noFill         : false, //When true only colorName is used and no background-icon is used
 
@@ -100712,7 +100757,9 @@ Base object-class for all type of markers
 
             options.colorName = options.colorName || options.fillColorName;
             options.borderColorName = options.borderColorName || options.lineColorName;
+            options.iconColorName = options.iconColorName || options.textColorName;
 //BRUGES MÅSKE IKKE:             options.color = options.color || options.textColor || options.iconColor;
+
             options.size = options.size.toLowerCase();
             options.size =  options.size == 'extrasmall' ? 'xs' :
                             options.size == 'small' ? 'sm' :
@@ -100916,7 +100963,7 @@ Base object-class for all type of markers
         setColor: function( colorName, force ){
             if (colorName && ((colorName != this.colorName) || force)){
                 this._setAnyColor( 'colorName', colorName, 'lbm-color-', this.$background, this.options.setColor);
-                this._setTextColor();
+                this._setInnerColor();
             }
             return this;
         },
@@ -100930,7 +100977,15 @@ Base object-class for all type of markers
             return this;
         },
 
-        _setAnyColor: function( id, newColorName, classNamePrefix, $element, options ){
+        /*****************************************************
+        setIconColor( iconColorName )
+        *****************************************************/
+        setIconColor: function( iconColorName ){
+            this.options.iconColorName = iconColorName;
+            return this._setInnerColor();
+        },
+
+        _setAnyColor: function( id, newColorName, classNamePrefix, $element, options = {}){
             if (this[id])
                 this.removeClass(classNamePrefix + this[id]);
             this[id] = newColorName;
@@ -100942,24 +100997,32 @@ Base object-class for all type of markers
         },
 
         /*****************************************************
-        _setTextColor()
+        _setInnerColor()
         *****************************************************/
-        _setTextColor: function(){
-            if (this.$background && this.$background.first().length){
-                var bgColorRGBStr = this.$background.first().css( this.options.setColor.cssAttrName );
+        _setInnerColor: function(){
+            //If the color of the inner text/icon is given in options.iconColorName => use it
+            if (this.options.iconColorName){
+                this.$inner.removeClass(this['iconColorName']);
+                this['iconColorName'] = 'fa-lbm-color-'+this.options.iconColorName;
+                this.$inner.addClass(this['iconColorName']);
+            }
+            else
+                //..else use white or black with the best contrast to the background-color
+                if (this.$background && this.$background.first().length){
+                    var bgColorRGBStr = this.$background.first().css( this.options.setColor.cssAttrName );
 
-                //Validate that it is rgba(123,123,123,...)
-                var regex = /\((\d{1,3}%?,\s?){3}.*\)/;
-                if (regex.test(bgColorRGBStr)) {
-                    var bgColorRGB = bgColorRGBStr ? bgColorRGBStr.split("(")[1].split(")")[0].split(',') : null,
-                        color = bgColorRGB ? window.colorContrastRGB(parseInt(bgColorRGB[0]), parseInt(bgColorRGB[1]), parseInt(bgColorRGB[2])) : null;
-                    if (color){
-                        var colorIsBlack = (color == '#000000');
-                        this.$icon.toggleClass('lbm-text-is-black', colorIsBlack);
-                        this.$icon.toggleClass('lbm-text-is-white', !colorIsBlack);
+                    //Validate that it is rgba(123,123,123,...)
+                    var regex = /\((\d{1,3}%?,\s?){3}.*\)/;
+                    if (regex.test(bgColorRGBStr)) {
+                        var bgColorRGB = bgColorRGBStr ? bgColorRGBStr.split("(")[1].split(")")[0].split(',') : null,
+                            color = bgColorRGB ? window.colorContrastRGB(parseInt(bgColorRGB[0]), parseInt(bgColorRGB[1]), parseInt(bgColorRGB[2])) : null;
+                        if (color){
+                            var colorIsBlack = (color == '#000000');
+                            this.$icon.toggleClass('lbm-text-is-black', colorIsBlack);
+                            this.$icon.toggleClass('lbm-text-is-white', !colorIsBlack);
+                        }
                     }
                 }
-            }
             return this;
         },
 

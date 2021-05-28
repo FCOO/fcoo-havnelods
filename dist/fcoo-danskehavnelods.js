@@ -13,20 +13,63 @@
 	window.fcoo = window.fcoo || {};
     var ns = window.fcoo = window.fcoo || {};
 
-//HER    var type_marina = 'lyst',
-//HER        type_port   = 'erhverv',
-//HER        type_bridge = 'bro';
+    var type_port   = 'erhverv',
+        type_marina = 'lyst',
+        type_bridge = 'bro',
 
-    var bsMarkerOptions = {
-            size     : 'small',
-            colorName: 'red', //'orange',
-            round    : true,
+        bsMarkerOptions = {
+            size: 'small',
+
+            markerClassName : 'overflow-hidden',
 
             transparent             : true,
             hover                   : true,
             shadowWhenPopupOpen     : true,
             tooltipHideWhenPopupOpen: true
-        };
+        },
+
+        bsMarkerOptionsType = {};
+
+    bsMarkerOptionsType[type_port] = $.extend(true, {}, bsMarkerOptions, {
+        iconClass: 'fai fa-ship3-black port_icon_adjust',
+        scaleInner: 200,
+
+        colorName      : 'white',
+        borderColorName: 'navigation',
+        iconColorName  : 'navigation',
+
+        round       : false,
+        thinBorder  : true,
+        noBorder    : false
+
+    });
+
+    bsMarkerOptionsType[type_marina] = $.extend(true, {}, bsMarkerOptions, {
+        iconClass : 'fai fa-sailboat4-black fa-flip-horizontal',
+        scaleInner: 200,
+
+        colorName      : 'white',
+        borderColorName: 'navigation',
+        iconColorName  : 'navigation',
+
+        round       : true,
+        thinBorder  : true,
+        noBorder    : false
+
+    });
+
+    bsMarkerOptionsType[type_bridge] = $.extend(true, {}, bsMarkerOptions, {
+        iconClass : 'fai fa-bridge6',
+        scaleInner: 180,
+
+        colorName      : 'white', //'yellow',
+        //borderColorName: 'navigation',
+        iconColorName  : 'black',
+
+        round       : false,
+        thinBorder  : false,
+        noBorder    : true,
+    });
 
     /*
     Names for menus:
@@ -39,7 +82,7 @@
 
     Sub-layers:
     Lystbådehavne / Marinas
-    Erhvervshavne / Commertial Ports
+    Erhvervshavne / Commercial Ports
     Broer / Bridges
 */
 
@@ -117,6 +160,7 @@
         this.name       = options.name;
         this.MANGLER    = options.TODO;
 
+
         this.position   = options.position;
 
         //TEST
@@ -127,9 +171,8 @@
 
         this.latLng     = L.latLng(this.position);
 
-        this.color = options.color || bsMarkerOptions.colorName;
         this.header = {
-            icon: L.bsMarkerAsIcon(this.color),
+            icon: L.bsMarkerAsIcon(bsMarkerOptionsType[this.type]),
             text: this.name
         };
     };
@@ -138,14 +181,9 @@
     var imgWidth = 300;
     Location.prototype = {
         createMarker: function(){
-            var markerOptions =
-                    $.extend(true,
-                        {tooltip: {text: this.name}},
-                        bsMarkerOptions
-                    ),
-                this_show = $.proxy(this.show, this);
+            var this_show = $.proxy(this.show, this);
 
-            return L.bsMarkerCircle( this.latLng, markerOptions)
+            return L.bsMarkerCircle( this.latLng, $.extend(true, {tooltip: {text: this.name}}, bsMarkerOptionsType[this.type]))
                         .bindPopup({
                             width: imgWidth + 6,
                             //flexWidth: true,
@@ -156,7 +194,7 @@
 
                             onNew   : this_show,
                             header  : this.header,
-                            content : $('<img src="https://www.danskehavnelods.dk/planer/jpg_70/LF_AGRNS.jpg"/>')
+                            content : $('<img src="https://www.danskehavnelods.dk/planer/jpg_70/LF_AGRNS.jpg"/>') //<== MANGLER
                                         .css('max-width', imgWidth+'px')
                                         .on('click', this_show),
                             buttons: [{

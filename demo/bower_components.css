@@ -18,7 +18,7 @@
 
 ************************************************/
 /***********************************************
-    modernizr-mediaquery.scss,
+    modernizr-mediaquery.scss, 
 
     (c) 2015, FCOO
 
@@ -27,7 +27,7 @@
 
 ************************************************/
 /***********************************************
-    modernizr-mediaquery-variables.scss,
+    modernizr-mediaquery-variables.scss, 
 
     (c) 2015, FCOO
 
@@ -38,7 +38,7 @@
 
 ************************************************/
 /***********************************************
-    _modernizr-mediaquery-orientation_print.scss,
+    _modernizr-mediaquery-orientation_print.scss, 
 
     (c) 2015, FCOO
 
@@ -23512,7 +23512,7 @@ Adjust font-size and top for .inner to fit inside a fa-map-marker icon
   top: calc(-4.1em / 0.5 * 1.2); }
 
 /***********************************************
-	leaflet-control-topcenter.scss,
+	leaflet-control-topcenter.scss, 
 
 	(c) 2016, FCOO
 
@@ -23540,7 +23540,7 @@ Adjust font-size and top for .inner to fit inside a fa-map-marker icon
   right: 0; }
 
 /*! =======================================================
-                      VERSION  11.0.2
+                      VERSION  11.0.2              
 ========================================================= */
 /*! =========================================================
  * bootstrap-slider.js
@@ -23557,7 +23557,7 @@ Adjust font-size and top for .inner to fit inside a fa-map-marker icon
  *
  * bootstrap-slider is released under the MIT License
  * Copyright (c) 2019 Kyle Kemp, Rohit Kalkur, and contributors
- *
+ * 
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software and associated documentation
  * files (the "Software"), to deal in the Software without
@@ -23566,10 +23566,10 @@ Adjust font-size and top for .inner to fit inside a fa-map-marker icon
  * copies of the Software, and to permit persons to whom the
  * Software is furnished to do so, subject to the following
  * conditions:
- *
+ * 
  * The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
- *
+ * 
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
  * OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND

@@ -1,12 +1,12 @@
 {
-  "name": "fcoo-danskehavnelods",
-  "version": "0.0.1",
-  "homepage": "https://github.com/FCOO/fcoo-danskehavnelods",
+  "name": "fcoo-havnelods",
+  "version": "0.0.6",
+  "homepage": "https://github.com/FCOO/fcoo-havnelods",
   "author": "Niels Holt nho@fcoo.dk",
   "description": "package.json is only use for building the package. see bower.json for more info",
   "repository": {
     "type": "git",
-    "url": "git://github.com/FCOO/fcoo-danskehavnelods.git"
+    "url": "git://github.com/FCOO/fcoo-havnelods.git"
   },
   "dependencies": {},
   "devDependencies": {

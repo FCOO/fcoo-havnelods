@@ -1,18 +1,18 @@
-# fcoo-danskehavnelods
+# fcoo-havnelods
 
 ## Description
-Leaflet-layer with harbors and bridges from danskehavnelods.dk
+Leaflet-layer with harbors and bridges from [danskehavnelods.dk](https://www.danskehavnelods.dk/) and [gronlandskehavnelods.dk](https://www.gronlandskehavnelods.dk/)
 
 ## Installation
 ### bower
-`bower install https://github.com/FCOO/fcoo-danskehavnelods.git --save`
+`bower install https://github.com/FCOO/fcoo-havnelods.git --save`
 
 ## Demo
-http://FCOO.github.io/fcoo-danskehavnelods/demo/
+http://FCOO.github.io/fcoo-havnelods/demo/
 
 <!--
 ## Usage
-```var mydanskeHavnelods = new danskeHavnelods( options );```
+```var myHavnelods = new Havnelods( options );```
 
 
 ### options
@@ -29,7 +29,7 @@ http://FCOO.github.io/fcoo-danskehavnelods/demo/
  -->
 
 ## Copyright and License
-This plugin is licensed under the [MIT license](https://github.com/FCOO/fcoo-danskehavnelods/LICENSE).
+This plugin is licensed under the [MIT license](https://github.com/FCOO/fcoo-havnelods/LICENSE).
 
 Copyright (c) 2021 [FCOO](https://github.com/FCOO) [Danish Geodata Agency](https://gst.dk)
 

@@ -1,0 +1,80 @@
+/***********************************************
+	fcoo-havnelods.scss,
+
+	(c) 2021, FCOO
+
+	https://github.com/FCOO/fcoo-havnelods
+	https://github.com/FCOO
+
+
+************************************************/
+/***********************************************************************
+
+leaflet-bootstrap-marker-mixin.scss
+
+*************************************************************************/
+/***********************************************************************
+marker-circle-color
+Create style for bsMarkerCircle in different colors
+*************************************************************************/
+/***********************************************************************
+lbm-circle-and-icon-classes
+Create class for bsMarkerCircle named $name with color and color-border
+*************************************************************************/
+/***********************************************************************
+lbm-marker-and-icon-classes
+Create class for bsMarkerCircle named $name with color and color-border
+*************************************************************************/
+/***********************************************************************
+fa-lbm-color
+Create class for color and border-color used by L.bsMarkerAsIcon (and $.bsMarkerAsIcon)
+to create fa-icon looking like the marker
+*************************************************************************/
+.lbm-type-circle.lbm-color-navigation {
+  background-color: #e2007a;
+  color: #fff; }
+  .lbm-type-circle.lbm-color-navigation.lbm-transparent {
+    background-color: rgba(226, 0, 122, 0.7); }
+    .lbm-type-circle.lbm-color-navigation.lbm-transparent.lbm-hover:hover {
+      background-color: rgba(226, 0, 122, 0.9); }
+  .lbm-type-circle.lbm-color-navigation.lbm-shadow, .lbm-type-circle.lbm-color-navigation.leaflet-drag-target, .lbm-type-circle.lbm-color-navigation.lbm-hover:hover {
+    box-shadow: 0px 0px 0px 5px rgba(226, 0, 122, 0.28); }
+  .lbm-type-circle.lbm-color-navigation:before {
+    box-shadow: 0 0 6px 2px #e2007a; }
+
+.lbm-type-circle.lbm-border-color-navigation {
+  border-color: #e2007a; }
+
+.fa-lbm-color-navigation {
+  color: #e2007a; }
+
+.fa-lbm-border-color-navigation {
+  color: #e2007a; }
+
+.port_icon_adjust {
+  position: relative;
+  left: -1px; }
+
+.fa-normal-dot {
+  position: relative;
+  font-size: calc(10em/10);
+  left: calc(10em/10);
+  top: calc(10em/10); }
+
+.fa-small-dot {
+  position: relative;
+  font-size: .4em;
+  left: -.75em;
+  top: -.5em; }
+
+.fa-normal-square {
+  position: relative;
+  font-size: 7px;
+  left: -2.5px;
+  top: -2px; }
+
+.fa-small-square {
+  position: relative;
+  font-size: 6px;
+  left: -3px;
+  top: -2px; }

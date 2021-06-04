@@ -1,7 +1,7 @@
 /***********************************************
-gruntfile.js for fcoo-danskehavnelods
+gruntfile.js for fcoo-havnelods
 
-https://github.com/FCOO/fcoo-danskehavnelods
+https://github.com/FCOO/fcoo-havnelods
 
 ***********************************************/
 

@@ -1,18 +1,18 @@
 {
-  "name": "fcoo-danskehavnelods",
-  "version": "0.0.1",
-  "homepage": "https://github.com/FCOO/fcoo-danskehavnelods",
+  "name": "fcoo-havnelods",
+  "version": "0.0.6",
+  "homepage": "https://github.com/FCOO/fcoo-havnelods",
   "authors": [
     "Niels Holt"
   ],
   "description": "",
   "main": [
-    "dist/fcoo-danskehavnelods.js",
-    "dist/fcoo-danskehavnelods.css"
+    "dist/fcoo-havnelods.js",
+    "dist/fcoo-havnelods.css"
   ],
   "repository": {
     "type": "git",
-    "url": "git://github.com/FCOO/fcoo-danskehavnelods.git"
+    "url": "git://github.com/FCOO/fcoo-havnelods.git"
   },
   "dependencies": {
     "jquery": "latest",

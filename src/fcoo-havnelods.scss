@@ -1,0 +1,64 @@
+/***********************************************
+	fcoo-havnelods.scss,
+
+	(c) 2021, FCOO
+
+	https://github.com/FCOO/fcoo-havnelods
+	https://github.com/FCOO
+
+
+************************************************/
+//BOURBON - http://bourbon.io/
+@import "../bower_components/bourbon/core/bourbon";
+
+//MODERNIZR-MIXIN - https://github.com/danielguillan/modernizr-mixin
+@import "../bower_components/modernizr-mixin/stylesheets/modernizr";
+
+//MATHSASS - https://github.com/terkel/mathsass
+@import "../bower_components/mathsass/dist/math";
+
+
+//LEAFLET-BOOTSTRAP_MARKER - mixin to create colors for bsMarker
+@import "../bower_components/sass-color-helpers/stylesheets/color-helpers";
+@import "../bower_components/leaflet-bootstrap-marker/src/leaflet-bootstrap-marker-mixin";
+
+
+//Create the classes to give the marker the 'pink' color
+$dark-purple: #e2007a; //Same as in leaflet-bootstrap-niord. TODO: CREATE COMMON MIXIN WITH THIS COLOR
+@include lbm-marker-and-icon-classes( navigation, $dark-purple );
+
+
+//Super optimizing
+.port_icon_adjust {
+    position: relative;
+    left    : -1px;
+}
+
+
+.fa-normal-dot {
+    position: relative;
+    font-size: calc(10em/10);
+    left     : calc(10em/10);
+    top      : calc(10em/10);
+}
+.fa-small-dot {
+    position : relative;
+    font-size: .4em;
+    left     : -.75em;
+    top      : -.5em;
+}
+
+
+.fa-normal-square {
+    position: relative;
+    font-size:  7px;
+    left     : -2.5px;
+    top      : -2px;
+}
+.fa-small-square {
+    position : relative;
+    font-size:  6px;
+    left     : -3px;
+    top      : -2px;
+}
+

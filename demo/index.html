@@ -17,8 +17,12 @@
 	<div id="map" style="width: 99%; height: 99%"></div>
 	
     <script src="bower_components.js"></script>
+    <script src="../src/0-facilities.js"></script>
+    <script src="../src/1-location.js"></script>
+    <script src="../src/2-location-dk.js"></script>
+    <script src="../src/3-location-gl.js"></script>
+    <script src="../src/4-location-bridge.js"></script>
     <script src="../src/fcoo-havnelods.js"></script>
-    <script src="../src/location.js"></script>
     <script>
         i18next.init();
         i18next.changeLanguage('da');
@@ -54,7 +58,12 @@
 
             fcoo.promiseList.options.finally = function(){
                 fcoo.globalSetting.load(null, function(){
+                    i18next.changeLanguage('da');
 //HER                    i18next.changeLanguage('en');
+setTimeout(function(){
+console.log(window.photos, window.plans);
+}, 2000);
+
                 });
             };
 

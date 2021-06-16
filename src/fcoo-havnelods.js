@@ -34,6 +34,12 @@
     Lystbådehavne / Marinas
     Erhvervshavne / Commertial Ports
     Broer / Bridges
+
+    Greenland:
+        By/Town,
+        Bygd/Hamlet
+        Station/Station
+
 */
 
 

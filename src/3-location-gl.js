@@ -30,7 +30,6 @@ this.INDEX = 1;
             pdfUrl      : 'https://www.gronlandskehavnelods.dk/PDF/Report/<ID>?type=0&onlyText=0',
             photoUrlMask: 'https://www.gronlandskehavnelods.dk/foto/<FILENAME>',
             planUrlMask : 'https://www.gronlandskehavnelods.dk/planer/jpg_200/<FILENAME>'
-
         },
 
         /***********************************

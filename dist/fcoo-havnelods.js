@@ -478,7 +478,6 @@ this.INDEX = 1;
             pdfUrl      : 'https://www.gronlandskehavnelods.dk/PDF/Report/<ID>?type=0&onlyText=0',
             photoUrlMask: 'https://www.gronlandskehavnelods.dk/foto/<FILENAME>',
             planUrlMask : 'https://www.gronlandskehavnelods.dk/planer/jpg_200/<FILENAME>'
-
         },
 
         /***********************************
@@ -604,7 +603,11 @@ this.INDEX = 2;
                 if (bridgePosition[options.BRO_ID])
                     options.latLng = L.latLng( bridgePosition[options.BRO_ID] );
             },
-            pdfUrl   : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=1&ID=<ID>&NR=2'
+            pdfUrl   : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=1&ID=<ID>&NR=2',
+
+            photoUrlMask: 'https://www.danskehavnelods.dk/foto/<FILENAME>',
+            planUrlMask : 'https://www.danskehavnelods.dk/planer/jpg_200/<FILENAME>'
+
         },
 
         /***********************************

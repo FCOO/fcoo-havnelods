@@ -24,9 +24,6 @@ window.niels = 0;
         };
 
 
-    //Set color and shape for all Locations
-    nsHL.locationColorName = 'blue';//'navigation';
-
 window.plans = [0,0,0];
 window.photos = [0,0,0];
 
@@ -41,6 +38,8 @@ window.photos = [0,0,0];
         this.options = options;
 
         this.parent = parent;
+
+        this.colorName = this.setup.colorName || 'blue';
 
         //Convert all "0" and "-1" to false and true and replace "\r\n" with "<br>"
         $.each(options, function(id, value){

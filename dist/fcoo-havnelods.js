@@ -94,9 +94,6 @@ window.niels = 0;
         };
 
 
-    //Set color and shape for all Locations
-    nsHL.locationColorName = 'blue';//'navigation';
-
 window.plans = [0,0,0];
 window.photos = [0,0,0];
 
@@ -111,6 +108,8 @@ window.photos = [0,0,0];
         this.options = options;
 
         this.parent = parent;
+
+        this.colorName = this.setup.colorName || 'blue';
 
         //Convert all "0" and "-1" to false and true and replace "\r\n" with "<br>"
         $.each(options, function(id, value){
@@ -375,6 +374,8 @@ this.INDEX = this.INDEX || 0;
 
     nsHL.Location_DK.prototype = $.extend(true, {}, nsHL.Location.prototype, {
         setup: {
+            colorName   : 'harbor-dk',
+
             id2OptionsId: {id: 'HAVNE_ID', name: 'NAVN'},
             planIndex   : '',
             pdfUrl      : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=0&ID=<ID>&NR=2',
@@ -404,11 +405,11 @@ this.INDEX = this.INDEX || 0;
                 iconList = ['fal fa-square-full'];
 
             if (type.isCommertial)
-                iconList.push('fas fa-square-full fa-lbm-color-'+nsHL.locationColorName);
+                iconList.push('fas fa-square-full fa-lbm-color-'+this.colorName);
 
             if (type.isMarina || type.isNeither)
                 iconList.push(
-                    (type.isCommertial ? 'far fa-square-full fa-lbm-color-white' : 'fas fa-square-full fa-lbm-color-'+nsHL.locationColorName) +
+                    (type.isCommertial ? 'far fa-square-full fa-lbm-color-white' : 'fas fa-square-full fa-lbm-color-'+this.colorName) +
                     ' ' +
                     (type.isNeither ? 'fa-small-square' : 'fa-normal-square')
                 );
@@ -423,13 +424,13 @@ this.INDEX = this.INDEX || 0;
         markerOptions: function(){
             var type = this.getType();
             var options = {
-                    colorName:  type.isCommertial ? nsHL.locationColorName : 'white',
+                    colorName:  type.isCommertial ? this.colorName : 'white',
                 };
 
             if (type.isMarina || type.isNeither){
                 options.scaleInner     = type.isNeither ? null : 130;
                 options.innerIconClass = type.isBoth ? 'far fa-square-full' : 'fas fa-square-full';
-                options.iconColorName  = type.isBoth ? 'white' : nsHL.locationColorName;
+                options.iconColorName  = type.isBoth ? 'white' : this.colorName;
             }
 
             options = $.extend(true, {}, options, {
@@ -475,6 +476,8 @@ this.INDEX = 1;
 
     nsHL.Location_GL.prototype = $.extend(true, {}, nsHL.Location_DK.prototype, {
         setup: {
+            colorName   : 'harbor-gl',
+
             pdfUrl      : 'https://www.gronlandskehavnelods.dk/PDF/Report/<ID>?type=0&onlyText=0',
             photoUrlMask: 'https://www.gronlandskehavnelods.dk/foto/<FILENAME>',
             planUrlMask : 'https://www.gronlandskehavnelods.dk/planer/jpg_200/<FILENAME>'
@@ -498,7 +501,7 @@ this.INDEX = 1;
             if (type == '1')
                 return L.bsMarkerAsIcon( this.getMarkerOptions() );
             else
-                return [['far fa-square-full', 'fas fa-square-full fa-lbm-color-' + nsHL.locationColorName + ' ' + (type == '2' ? 'fa-normal-square' : 'fa-small-square')]];
+                return [['far fa-square-full', 'fas fa-square-full fa-lbm-color-' + this.colorName + ' ' + (type == '2' ? 'fa-normal-square' : 'fa-small-square')]];
         },
 
         /***********************************
@@ -510,7 +513,7 @@ this.INDEX = 1;
 
             if (type == '1')
                 options = {
-                    colorName      : nsHL.locationColorName,
+                    colorName      : this.colorName,
                     borderColorName: 'black'
                 };
             else
@@ -520,7 +523,7 @@ this.INDEX = 1;
 
                     colorName      : 'white',
                     borderColorName: 'black',
-                    iconColorName  : nsHL.locationColorName,
+                    iconColorName  : this.colorName,
                 };
 
             options = $.extend(true, {}, options, {
@@ -676,6 +679,12 @@ this.INDEX = 2;
     Lystbådehavne / Marinas
     Erhvervshavne / Commertial Ports
     Broer / Bridges
+
+    Greenland:
+        By/Town,
+        Bygd/Hamlet
+        Station/Station
+
 */
 
 

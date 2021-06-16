@@ -24,6 +24,8 @@ this.INDEX = this.INDEX || 0;
 
     nsHL.Location_DK.prototype = $.extend(true, {}, nsHL.Location.prototype, {
         setup: {
+            colorName   : 'harbor-dk',
+
             id2OptionsId: {id: 'HAVNE_ID', name: 'NAVN'},
             planIndex   : '',
             pdfUrl      : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=0&ID=<ID>&NR=2',
@@ -53,11 +55,11 @@ this.INDEX = this.INDEX || 0;
                 iconList = ['fal fa-square-full'];
 
             if (type.isCommertial)
-                iconList.push('fas fa-square-full fa-lbm-color-'+nsHL.locationColorName);
+                iconList.push('fas fa-square-full fa-lbm-color-'+this.colorName);
 
             if (type.isMarina || type.isNeither)
                 iconList.push(
-                    (type.isCommertial ? 'far fa-square-full fa-lbm-color-white' : 'fas fa-square-full fa-lbm-color-'+nsHL.locationColorName) +
+                    (type.isCommertial ? 'far fa-square-full fa-lbm-color-white' : 'fas fa-square-full fa-lbm-color-'+this.colorName) +
                     ' ' +
                     (type.isNeither ? 'fa-small-square' : 'fa-normal-square')
                 );
@@ -72,13 +74,13 @@ this.INDEX = this.INDEX || 0;
         markerOptions: function(){
             var type = this.getType();
             var options = {
-                    colorName:  type.isCommertial ? nsHL.locationColorName : 'white',
+                    colorName:  type.isCommertial ? this.colorName : 'white',
                 };
 
             if (type.isMarina || type.isNeither){
                 options.scaleInner     = type.isNeither ? null : 130;
                 options.innerIconClass = type.isBoth ? 'far fa-square-full' : 'fas fa-square-full';
-                options.iconColorName  = type.isBoth ? 'white' : nsHL.locationColorName;
+                options.iconColorName  = type.isBoth ? 'white' : this.colorName;
             }
 
             options = $.extend(true, {}, options, {

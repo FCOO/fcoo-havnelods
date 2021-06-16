@@ -24,9 +24,13 @@
 
 
 //Create the classes to give the marker the 'pink' color
-$dark-purple: #e2007a; //Same as in leaflet-bootstrap-niord. TODO: CREATE COMMON MIXIN WITH THIS COLOR
-@include lbm-marker-and-icon-classes( navigation, $dark-purple );
+// $dark-purple: #e2007a; //Same as in leaflet-bootstrap-niord. TODO: CREATE COMMON MIXIN WITH THIS COLOR
+// @include lbm-marker-and-icon-classes( navigation, $dark-purple );
 
+
+//Create two classes to give Harbors in DK and GL a green color. Colors are from ifm - colors for markers in different layers.js
+@include lbm-marker-and-icon-classes( harbor-dk, #7CB82F );
+@include lbm-marker-and-icon-classes( harbor-gl, #60AA14 );
 
 //Super optimizing
 .port_icon_adjust {

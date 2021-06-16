@@ -30,26 +30,47 @@ fa-lbm-color
 Create class for color and border-color used by L.bsMarkerAsIcon (and $.bsMarkerAsIcon)
 to create fa-icon looking like the marker
 *************************************************************************/
-.lbm-type-circle.lbm-color-navigation {
-  background-color: #e2007a;
-  color: #fff; }
-  .lbm-type-circle.lbm-color-navigation.lbm-transparent {
-    background-color: rgba(226, 0, 122, 0.7); }
-    .lbm-type-circle.lbm-color-navigation.lbm-transparent.lbm-hover:hover {
-      background-color: rgba(226, 0, 122, 0.9); }
-  .lbm-type-circle.lbm-color-navigation.lbm-shadow, .lbm-type-circle.lbm-color-navigation.leaflet-drag-target, .lbm-type-circle.lbm-color-navigation.lbm-hover:hover {
-    box-shadow: 0px 0px 0px 5px rgba(226, 0, 122, 0.28); }
-  .lbm-type-circle.lbm-color-navigation:before {
-    box-shadow: 0 0 6px 2px #e2007a; }
+.lbm-type-circle.lbm-color-harbor-dk {
+  background-color: #7CB82F;
+  color: #000; }
+  .lbm-type-circle.lbm-color-harbor-dk.lbm-transparent {
+    background-color: rgba(124, 184, 47, 0.7); }
+    .lbm-type-circle.lbm-color-harbor-dk.lbm-transparent.lbm-hover:hover {
+      background-color: rgba(124, 184, 47, 0.9); }
+  .lbm-type-circle.lbm-color-harbor-dk.lbm-shadow, .lbm-type-circle.lbm-color-harbor-dk.leaflet-drag-target, .lbm-type-circle.lbm-color-harbor-dk.lbm-hover:hover {
+    box-shadow: 0px 0px 0px 5px rgba(124, 184, 47, 0.28); }
+  .lbm-type-circle.lbm-color-harbor-dk:before {
+    box-shadow: 0 0 6px 2px #7CB82F; }
 
-.lbm-type-circle.lbm-border-color-navigation {
-  border-color: #e2007a; }
+.lbm-type-circle.lbm-border-color-harbor-dk {
+  border-color: #7CB82F; }
 
-.fa-lbm-color-navigation {
-  color: #e2007a; }
+.fa-lbm-color-harbor-dk {
+  color: #7CB82F; }
 
-.fa-lbm-border-color-navigation {
-  color: #e2007a; }
+.fa-lbm-border-color-harbor-dk {
+  color: #7CB82F; }
+
+.lbm-type-circle.lbm-color-harbor-gl {
+  background-color: #60AA14;
+  color: #000; }
+  .lbm-type-circle.lbm-color-harbor-gl.lbm-transparent {
+    background-color: rgba(96, 170, 20, 0.7); }
+    .lbm-type-circle.lbm-color-harbor-gl.lbm-transparent.lbm-hover:hover {
+      background-color: rgba(96, 170, 20, 0.9); }
+  .lbm-type-circle.lbm-color-harbor-gl.lbm-shadow, .lbm-type-circle.lbm-color-harbor-gl.leaflet-drag-target, .lbm-type-circle.lbm-color-harbor-gl.lbm-hover:hover {
+    box-shadow: 0px 0px 0px 5px rgba(96, 170, 20, 0.28); }
+  .lbm-type-circle.lbm-color-harbor-gl:before {
+    box-shadow: 0 0 6px 2px #60AA14; }
+
+.lbm-type-circle.lbm-border-color-harbor-gl {
+  border-color: #60AA14; }
+
+.fa-lbm-color-harbor-gl {
+  color: #60AA14; }
+
+.fa-lbm-border-color-harbor-gl {
+  color: #60AA14; }
 
 .port_icon_adjust {
   position: relative;

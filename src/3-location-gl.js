@@ -27,6 +27,8 @@ this.INDEX = 1;
 
     nsHL.Location_GL.prototype = $.extend(true, {}, nsHL.Location_DK.prototype, {
         setup: {
+            colorName   : 'harbor-gl',
+
             pdfUrl      : 'https://www.gronlandskehavnelods.dk/PDF/Report/<ID>?type=0&onlyText=0',
             photoUrlMask: 'https://www.gronlandskehavnelods.dk/foto/<FILENAME>',
             planUrlMask : 'https://www.gronlandskehavnelods.dk/planer/jpg_200/<FILENAME>'
@@ -50,7 +52,7 @@ this.INDEX = 1;
             if (type == '1')
                 return L.bsMarkerAsIcon( this.getMarkerOptions() );
             else
-                return [['far fa-square-full', 'fas fa-square-full fa-lbm-color-' + nsHL.locationColorName + ' ' + (type == '2' ? 'fa-normal-square' : 'fa-small-square')]];
+                return [['far fa-square-full', 'fas fa-square-full fa-lbm-color-' + this.colorName + ' ' + (type == '2' ? 'fa-normal-square' : 'fa-small-square')]];
         },
 
         /***********************************
@@ -62,7 +64,7 @@ this.INDEX = 1;
 
             if (type == '1')
                 options = {
-                    colorName      : nsHL.locationColorName,
+                    colorName      : this.colorName,
                     borderColorName: 'black'
                 };
             else
@@ -72,7 +74,7 @@ this.INDEX = 1;
 
                     colorName      : 'white',
                     borderColorName: 'black',
-                    iconColorName  : nsHL.locationColorName,
+                    iconColorName  : this.colorName,
                 };
 
             options = $.extend(true, {}, options, {

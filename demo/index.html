@@ -14,7 +14,7 @@
 </head>
 
 <body>
-	<div id="map" style="width: 99%; height: 99%"></div>
+	<div id="map" style="width: 99%; height: 80%"></div>
 	
     <script src="bower_components.js"></script>
     <script src="../src/0-facilities.js"></script>
@@ -42,7 +42,14 @@
         };
     
 
-    
+    var list = window.fcoo.Havnelods.FacilitiesGroupList;
+    console.log(list);
+    $.each(list, function(index, group){
+        $.each(group.list, function(index, options){
+            $('<span style="padding:0 10px; margin-right:20px; border:1px solid black;"><i class="'+options.icon+'"></i>&nbsp;'+options.text.da+'</span>').appendTo( 'body');
+        });    
+    });    
+
         $(function() {
 	        var map = L.map('map').setView([56.2, 11.5], 6);
     		L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {

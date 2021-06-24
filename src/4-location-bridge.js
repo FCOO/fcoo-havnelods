@@ -72,7 +72,7 @@ this.INDEX = 2;
         getIcon
         ***********************************/
         getIcon: function(){
-            return 'fai fa-bridge6';
+            return 'fai fai-bridge6';
         },
 
         /***********************************

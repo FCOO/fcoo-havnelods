@@ -31,7 +31,7 @@
         bsMarkerOptionsType = {};
 
     bsMarkerOptionsType[type_port] = $.extend(true, {}, bsMarkerOptions, {
-        iconClass: 'fai fa-ship3-black port_icon_adjust',
+        iconClass: 'fai fai-ship3-black port_icon_adjust',
         scaleInner: 200,
 
         colorName      : 'white',
@@ -45,7 +45,7 @@
     });
 
     bsMarkerOptionsType[type_marina] = $.extend(true, {}, bsMarkerOptions, {
-        iconClass : 'fai fa-sailboat4-black fa-flip-horizontal',
+        iconClass : 'fai fai-sailboat4-black fa-flip-horizontal',
         scaleInner: 200,
 
         colorName      : 'white',
@@ -59,7 +59,7 @@
     });
 
     bsMarkerOptionsType[type_bridge] = $.extend(true, {}, bsMarkerOptions, {
-        iconClass : 'fai fa-bridge6',
+        iconClass : 'fai fai-bridge6',
         scaleInner: 180,
 
         colorName      : 'white', //'yellow',

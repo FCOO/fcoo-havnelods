@@ -1,6 +1,6 @@
 {
   "name": "fcoo-havnelods",
-  "version": "1.2.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/FCOO/fcoo-havnelods",
   "authors": [
     "Niels Holt"
@@ -17,8 +17,8 @@
   "dependencies": {
     "jquery": "latest",
     "leaflet": "latest",
-    "fcoo-application": "https://gitlab.com/FCOO/fcoo-application.git#^11.3.0",
-    "leaflet-bootstrap": "fcoo/leaflet-bootstrap#^2.29.0",
+    "fcoo-application": "https://gitlab.com/FCOO/fcoo-application.git#^12.0.0",
+    "leaflet-bootstrap": "fcoo/leaflet-bootstrap#^3.0.0",
     "leaflet-latlng-format": "fcoo/leaflet-latlng-format#^2.0.0"
   },
   "devDependencies": {

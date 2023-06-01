@@ -1,85 +1,16 @@
 /****************************************************************************
-facilities.js
-
-****************************************************************************/
-
-(function ($, L, i18next, moment, window/*, document, undefined*/) {
-	"use strict";
-
-	window.fcoo = window.fcoo || {};
-    var ns = window.fcoo = window.fcoo || {},
-        nsHL = ns.Havnelods = ns.Havnelods || {};
-
-    /***********************************************************************************************
-    Facilities
-    Groups of facilities at harbors
-    ***********************************************************************************************/
-    nsHL.FacilitiesGroupList = [{
-            text: {da:'Faciliteter', en:'Facilities'},
-            list: [
-                { id: 'MILJOESTATION', icon: 'far fa-trash-alt',    text: {da: 'Miljøstation', en:'Trash'} }, //Need better english word!
-                { id: 'APOTEK',        icon: 'far fa-clinic-medical',text: {da: 'Apotek', en:'Pharmacy'} },
-                { id: 'BAD',           icon: 'far fa-shower',       text: {da: 'Bad', en:'Bath'} },
-                { id: 'BANK',          icon: 'far fa-university',   text: {da: 'Bank', en:'Bank'} },
-                { id: 'EL',            icon: 'far fa-plug',         text: {da: 'Eltilslutning 220 volt', en:'Electricity 220 volt'} },
-                { id: 'FRISOR',        icon: 'far fa-cut',          text: {da: 'Frisør', en:'Hairdresser'} },
-                { id: 'HANDICAP',      icon: 'far fa-wheelchair',   text: {da: 'Handicapvenlige faciliteter', en:'Disabled Facilities'} },
-                { id: 'TOILET',        icon: 'far fa-restroom',     text: {da: 'Toilet', en:'Restroom'} },
-                { id: 'VAND',          icon: 'far fa-faucet-drip',  text: {da: 'Vand', en:'Water'} },
-                { id: 'VASKEM',        icon: 'far fa-washer',       text: {da: 'Møntvaskeri', en:'Laundrette'} },
-                { id: 'CAFE',          icon: 'far fa-coffee',       text: {da: 'Cafeteria/café/grillbar', en:'Cafeteria/Café/Grill Bar'} },
-                { id: 'CAMPING',       icon: 'far fa-campground',   text: {da: 'Campingplads', en:'Campsite'} },
-                { id: 'CYKEL',         icon: 'far fa-bicycle',      text: {da: 'Cykeludlejning', en:'Bicycle rental'} },
-                { id: 'GRILL',         icon: 'fai fai-barbecue2 font-weight-bold',  text: {da: 'Grillplads', en:'Barbecue area'} },
-                { id: 'LEGEPL',        icon: 'fai fai-child font-weight-bolder',    text: {da: 'Legeplads', en:'Playground'} }, // or fai-playground(2)
-                { id: 'RESTAU',        icon: 'far fa-utensils',     text: {da: 'Restaurant', en:'Restaurant'} },
-                { id: 'SURF',          icon: 'fai fai-wind-surfing font-weight-bold',   text: {da: 'Surfing', en:'Surfing'} }, //or fai fa-surfing-board(2)
-                { id: 'INFO',          icon: 'far fa-info',         text: {da: 'Turistinformation', en:'Tourist Information'} }
-            ]
-        },{
-            text: {da:'Service', en:'Service'},
-            list: [
-                { id: 'KRAN',          icon: 'fai fai-hook',    text: {da: 'Kran', en:'Crane'} },
-                { id: 'SLIP',          icon: 'fai fai-slipway', text: {da: 'Slip/bedding/travelift/slæbested', en:'Travelift/Slipway'} },
-                { id: 'VARKSTED',      icon: 'far fa-wrench',   text: {da: 'Værksted/værf', en:'Workshop/Shipyard'} },
-            ]
-        },{
-            text: {da:'Proviantering', en:'Provisioning'},
-            list: [
-                { id: 'BENZIN',        icon: 'far fa-gas-pump',                         text: {da: 'Benzin/diesel/olie', en:'Petrol/Diesel/Oil'} },
-                { id: 'GAS',           icon: 'fai fai-gas-cylinder font-weight-bold',   text: {da: 'Flaskegas', en:'Bottled gas'} }, //or fai fa-gas-cylinder2-4
-                { id: 'KIOSK',         icon: 'far fa-shopping-basket',                  text: {da: 'Kiosk/købmand/proviant', en:'Kiosk/Grocery/Provisions'} }, //or fa-shopping-cart
-                { id: 'PROVIANT',      icon: '', /*<-- TODO/MANGLER*/                   text: {da: 'Skibsproviantering', en:'Provisions'} },
-            ]
-        },{
-            text: {da:'Transport og Kommunikation', en:'Transport and Communication'},
-            list: [
-                { id: 'BUS',           icon: 'far fa-bus',      text: {da: 'Busforbindelse', en:'Bus Connection'} },
-                { id: 'FARGE',         icon: 'fai fai-ferry2',  text: {da: 'Færgeforbindelse', en:'Ferry Connection'} }, //or fa-ferry
-                { id: 'POST',          icon: 'far fa-envelope', text: {da: 'Posthus', en:'Postoffice'} },
-                { id: 'TELE',          icon: 'far fa-phone',    text: {da: 'Telefon', en:'Telephone'} },
-                { id: 'TOG',           icon: 'far fa-train',    text: {da: 'Togforbindelse', en:'Train Connection'} },
-            ]
-        }];
-
-}(jQuery, L, this.i18next, this.moment, this, document));
-
-
-
-
-;
-/****************************************************************************
 location.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
 	window.fcoo = window.fcoo || {};
     var ns = window.fcoo = window.fcoo || {},
         nsHL = ns.Havnelods = ns.Havnelods || {},
+
+
+        useMegaWidthModal = ns.modernizrDevice.isDesktop || ns.modernizrDevice.isTablet,
 
         //Common options for marker
         bsMarkerOptions = {
@@ -94,8 +25,33 @@ window.niels = 0;
         };
 
 
-window.plans = [0,0,0];
-window.photos = [0,0,0];
+    var modalWindow = null;
+
+    var gst_footer = [
+            {icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']},
+            {text: ['(','abbr:gst',')'], textClass:['me-0','me-0']}
+        ];
+
+
+
+    function onClickPosition(){
+        var location = $(this).data('hl_location');
+        if (location.parent.options && location.parent.options.onClickPosition)
+            location.parent.options.onClickPosition(location);
+        return false;
+    }
+
+
+    function getDateStr(date){
+        if (!date)
+            return '';
+
+        //Date come is different formates: "YYYY-MM-DDTHH:MM:SS" "YYYY-MM-DD 00:00" "YYYY-MM-D" "MM-DD-YYYY"
+        var dateStr = date.substring(0,10),
+            format  = dateStr[2] == '-' ? 'DD-MM-YYYY' : 'YYYY-MM-DD';
+
+        return moment(dateStr, format).dateFormat();
+    }
 
     /***********************************************************************************************
     Location
@@ -106,17 +62,16 @@ window.photos = [0,0,0];
     nsHL.Location = function(options, parent){
         var _this = this;
         this.options = options;
-
         this.parent = parent;
-
         this.colorName = this.setup.colorName || 'blue';
+
 
         //Convert all "0" and "-1" to false and true and replace "\r\n" with "<br>"
         $.each(options, function(id, value){
-            if (value === "0")
+            if ((value === "0") || (value === 0))
                 value = false;
             else
-            if (value === "-1")
+            if ((value === "-1") || (value === -1))
                 value = true;
             else
                 if (typeof value == 'string')
@@ -148,6 +103,23 @@ window.photos = [0,0,0];
             return result;
         }
         //********************************************
+        function getImageList(fileNamePrefix, textPrefix='UNKNOWN', infoPrefix='UNKNOWN', datePrefix='UNKNOWN', datePostfix='', photographerPrefix='UNKNOWN'){
+            var result = [];
+            for (var index = 0; index < 20; index++){
+                var indexStr = index ? ''+index : '';
+                if (options[fileNamePrefix + indexStr]){
+                    result.push({
+                        fileName    : options[fileNamePrefix + indexStr] + '.jpg',
+                        text        : options[textPrefix + indexStr] || '',
+                        info        : options[infoPrefix + indexStr] || '',
+                        date        : options[datePrefix + indexStr + datePostfix] || options[datePrefix + datePostfix + indexStr] || '',
+                        photographer: options[photographerPrefix + indexStr] || ''
+                    });
+                }
+            }
+            return result;
+        }
+        //********************************************
         if (options.latLng)
             this.latLng = options.latLng;
         else {
@@ -156,54 +128,42 @@ window.photos = [0,0,0];
 
             this.latLng = L.latLng( window.latLngFormat(trimLatLng(options.BREDDE), trimLatLng(options.LAENGDE)).value() );
 
+            if (!this.latLng)
+                console.error('ERROR Invalid lat long:', 'id='+this.id, 'lat='+options.BREDDE, 'long='+options.LAENGDE);
+
             window.latLngFormat.setFormat( saveLatLngFormat, true );
         }
 
-        //Create photoList = []{fileName, text, date, photographer}
+        //Get annotation
+        this.annotation = parent.options.annotationId ? options[parent.options.annotationId] : null;
 
-        this.photoList = [];
-        for (var photoIndex = 1; photoIndex < 20; photoIndex++)
-            if (options['FOTO'+photoIndex]){
-window.photos[this.INDEX]++;
-                this.photoList.push({
-                    fileName    : options['FOTO'+photoIndex].toUpperCase() + '.jpg',
-                    text        : options['FOTOTEKST'+photoIndex] || '',
-                    date        : options['OPR'+photoIndex] || '',
-                    photographer: options['FOTOGRAFNAVN'+photoIndex] || ''
-                });
-window.niels++;
-            }
+
+        //Create photoList = []{fileName, text, date, photographer}
+        this.photoList = getImageList('FOTO', 'FOTOTEKST', 'UNKNOWN', 'OPR', '', 'FOTOGRAFNAVN');
 
         //Create planList = []{fileName, text, info, date}
-window.plans[this.INDEX] = window.plans[this.INDEX] || 0;
-        this.planList = [];
         var planPrefix = this.setup.planPrefix || '';
-        for (var planIndex = 0; planIndex < 20; planIndex++){
-            var indexStr = planIndex ? ''+planIndex : '';
-            if (options[planPrefix+'PLAN'+indexStr]){
-window.plans[this.INDEX]++;
-                this.planList.push({
-                    fileName    : options[planPrefix+'PLAN'+indexStr].toUpperCase() + '.jpg',
-                    text        : options[planPrefix+'PLANTEKST'+indexStr] || '',
-                    info        : options[planPrefix+'PLAN_INFO'+indexStr] || '',
-                    date        : options[planPrefix+'PLAN'+indexStr+'_OPDATERET'] || ''
-                });
-window.niels++;
-            }
+        this.planList = getImageList(planPrefix+'PLAN', planPrefix+'PLANTEKST', planPrefix+'PLAN_INFO', planPrefix+'PLAN', '_OPDATERET');
 
+        //Create brotabelList (only for bridges)
+        this.brotabelList = getImageList('BROLYSTABEL');
 
-        }
     };
 
+    /***********************************************************************************************
+    Location.prototype
+    ***********************************************************************************************/
     nsHL.Location.prototype = {
         setup: {
             id2OptionsId : {}, //{id:ID} where id is this and ID is in options. Eq. {"id": "BRO_ID"}
             planPrefix   : '', //STRING - Prefix for options-ids with info on plans for the location
-            pdfUrl       : '', //STRING
-            photoUrlMask : '', //STRING. If given it must contain <FILENAME>
-            planUrlMask  : '', //STRING. If given it must contain <FILENAME>
-            brolysUrlMask: '', //STRING. If given it must contain <FILENAME>
-            optionsFunc : function(/*options*/){} //Adjust options
+            externalUrl  : '', //STRING
+
+
+            optionsFunc : function(/*options*/){}, //Adjust options
+
+            planHeader  : {da:'Havneplan'/*, en:'MANGLER'*/}
+
         },
 
 
@@ -232,43 +192,58 @@ window.niels++;
         },
 
         /*****************************************
-        _photoPlanUrl
+        buttonGST
         *****************************************/
-        _photoPlanUrl: function(fileName, urlMask){
-            return urlMask ? urlMask.replace('<FILENAME>', fileName) : ns.dataFilePath(true, this.parent.options.subDir, "photos_and_plans/") + fileName;
+        buttonGST: function(){
+            if (this.setup.externalUrl)
+                return {
+                    id     :'dhl_show'+this.id,
+                    icon   : 'far fa-link',
+                    text   : ['abbr:gst', {da: 'off. version', en:'Off. Version'}],
+                    class : 'min-width-8em',
+                    onClick: this.showGST.bind(this)
+                };
+            else
+                return null;
         },
 
         /*****************************************
-        photoUrl
+        showGST
         *****************************************/
-        photoUrl: function(index){
-            return index < this.photoList.length ? this._photoPlanUrl( this.photoList[index].fileName, this.setup.photoUrlMask ) : '';
+        showGST: function(){
+            window.open( this.setup.externalUrl.replace('<ID>', this.id) );
         },
 
         /*****************************************
-        planUrl
+        showInModalWindow
         *****************************************/
-        planUrl: function(index){
-            return index < this.planList.length ? this._photoPlanUrl( this.planList[index].fileName, this.setup.planUrlMask ) : '';
+        showInModalWindow: function(){
+            if (modalWindow)
+                modalWindow.remove();
+
+            modalWindow = $.bsModal({
+                header      : this.header,
+                flexWidth   : true,
+
+                extraWidth  : !useMegaWidthModal,
+                megaWidth   : useMegaWidthModal,
+
+
+                content     : this.accordionOptions(true),
+                footer      : gst_footer,
+                buttons     : [this.buttonGST()],
+                show        : true
+            });
         },
 
-        /*****************************************
-        showPdf
-        *****************************************/
-        showPdf: function(){
-            $.bsModalFile(
-                this.setup.pdfUrl.replace('<ID>', this.id),
-                {header: this.header}
-            );
-        },
 
         /*****************************************
         createMarker
         *****************************************/
         createMarker: function(){
-            var this_show = $.proxy(this.showPdf, this);
-
+            var this_showInModalWindow = this.showInModalWindow.bind(this);
             return L.bsMarkerCircle( this.latLng, this.getMarkerOptions() )
+
                         .bindPopup({
 //HER                            flexWidth: true,
                             fixable : true,
@@ -276,71 +251,254 @@ window.niels++;
                             //noVerticalPadding  :  true,
                             //noHorizontalPadding: true,
 
-                            onNew  : this_show,
+                            onNew  : this_showInModalWindow,
                             header : this.header,
 
                             maxHeight: 260,
                             width    : 260,
-                            content  : $.proxy(this.content_popup, this),
+                            clickable: true,
+
+                            fixedContent: this.fixedContent.bind(this, false),
+
+                            content     : null,
 
                             extended: {
-                                maxHeight: 600,
-                                width    : 600,
-                                content  : $.proxy(this.content_popup_extended, this),
-                                footer   : true
+                                maxHeight   : 600,
+                                width       : 511,  //Allows pictures to be 3/4 * 427
+                                clickable   : false,
+                                scroll      : true,
+                                fixedContent: this.fixedContent.bind(this, true),
+
+                                //content     : this.extendedContent(),
+                                content     : this.extendedContent.bind(this, false ),
+
+                                footer      : true
                             },
 
-                            buttons:[{
-                                id     :'dhl_show'+this.id,
-                                //icon   : $.bsNotyIcon.info,
-                                icon   : 'far fa-file-pdf',
-                                text   : ['abbr:gst', {da: 'officielle version', en:'Official Version'}],
-                                onClick: this_show
-                            }],
-                            footer: [{icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']}, {text: ['(','abbr:gst',')'], textClass:['mr-0','mr-0']}]
+                            buttons:[
+                                {
+                                    id     :'window_show'+this.id,
+                                    icon   : 'fal fa-window-maximize',
+                                    text   : {da: 'Vis mere', en:'Show more'},
+                                    class  : 'min-width-8em',
+                                    onClick: this_showInModalWindow
+                                },
+                                this.buttonGST()
+                            ],
+                            footer: gst_footer
                         });
-        },
-
-
-        /*****************************************
-        content_popup
-        *****************************************/
-        content_popup: function($body, popup/*,map*/){
-            var url = this.photoUrl(0) || this.planUrl(0);
-            if (url)
-                $('<img src="' + url + '" style="cursor: pointer; max-width:100%; max-height:100%"/>')
-                    .i18n(this.name, 'title')
-                    .on('click', function(){
-                        popup.$contentNode._bsModalSetSize( $.MODAL_SIZE_EXTENDED );
-                    })
-                    .appendTo($body);
-            else
-                $('<div/>')._bsAddHtml({text:{da:'MANGLER', en:'NOT READY'}}).appendTo($body);
-
-
 
         },
 
 
         /*****************************************
-        content_popup_extended
+        contentList
         *****************************************/
-        content_popup_extended: function($body, popup/*,map*/){
-            var url = this.photoUrl(0) || this.planUrl(0);
-            if (url)
-                $('<img src="' + url + '" style="cursor: pointer; max-width:100%; max-height:100%"/>')
-                    .i18n(this.name, 'title')
-                    .on('click', function(){
-                        popup.$contentNode._bsModalSetSize( $.MODAL_SIZE_NORMAL );
-                    })
-                    .appendTo($body);
-            else
-                $('<div/>')._bsAddHtml({text:{da:'MANGLER', en:'NOT READY'}}).appendTo($body);
+        contentList: function(){
+            var result = [],
+                type = this.type;
 
-
-
+            nsHL.contentList.forEach( (section) => {
+                if ( (!section.onlyType || section.onlyType.includes(type)) &&
+                     (!section.notType  || (section.notType != type) ) )  {
+                    var sectionContent = section.content(type, this.options);
+                    if (sectionContent)
+                        result.push({
+                            header  : section.header,
+                            content : sectionContent,
+                        });
+                }
+            });
+            return result;
         },
 
+
+
+       /*****************************************
+        fixedContent
+
+        Beliggenhed
+        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
+        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
+        Bridges DK: BELIGGENHED<br>Position - KORT_NR
+
+        header  : {da:'Beliggenhed'},
+        content : [
+            {id: {DK: 'HOVEDFARVAND_DDL2', GL: 'LANDSDEL',          BR: 'BELIGGENHED'}                  },
+            {id: {DK: 'FARVANDSAFSNIT_B',  GL: 'HOVEDFARVAND_DDL2', BR: null         }, before: ' - '   },
+            {id: {DK: null,                GL: 'FARVANDSAFSNIT_B',  BR: null         }, before: ' - '   },
+
+            {id: 'BREDDE',            before: '<br>', after: ' '  },
+            {id: 'LAENGDE'                              },
+            {id: 'KORT_NR',           before: ' - '               },
+            {id: 'HAVNEPLANSKORT_NR', before: ' - '               }
+        ]
+
+        *****************************************/
+        fixedContent: function(extended, $body){
+            var _this = this,
+                fixedContentTextClass     = 'd-block text-center',
+                fixedContentBoldTextClass = fixedContentTextClass + ' fw-bold',
+                hasOnClickPosition        = !!this.parent.options.onClickPosition,
+                link                      =  hasOnClickPosition ? onClickPosition    : null,
+                textData                  =  hasOnClickPosition ? {hl_location: _this} : null,
+
+                content = [];
+
+
+            //Name
+            content.push({
+                text     : this.name,
+                textClass: fixedContentBoldTextClass
+            });
+
+
+            //"Beliggenhed"
+            var idList, text = '';
+            switch (this.type){
+                case 'DK':  idList = ['HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B'  , 'KYSTAFSNIT'       ]; break;
+                case 'GL':  idList = ['LANDSDEL',           'HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B' ]; break;
+                case 'BR':  idList = ['BELIGGENHED'                                                 ]; break;
+            }
+            idList.forEach((id) => {
+                if (_this.options[id])
+                    text = text + (text ? ', ' : '') + _this.options[id];
+            });
+            content.push({
+                text     : text,
+                textClass: fixedContentTextClass
+            });
+
+            //Position
+            var posText = '';
+            if (this.options.BREDDE && this.options.LAENGDE)
+                posText = this.options.BREDDE + ' ' + this.options.LAENGDE;
+
+            //Kort
+            var mapText = '';
+            ['KORT_NR', 'HAVNEPLANSKORT_NR'].forEach((id) => {
+                if (_this.options[id])
+                    mapText = mapText + (mapText ? ' - ' : '') + _this.options[id];
+            });
+
+
+            if (extended){
+                var textArray = [];
+                if (posText) textArray.push({text: posText, link: link, textData: textData});
+                if (posText && mapText) textArray.push(' - ');
+                if (mapText) textArray.push(mapText);
+                if (textArray.length)
+                    content.push(
+                        $('<div/>')
+                            .addClass('d-flex justify-content-center')
+                            ._bsAddHtml(textArray)
+                    );
+            } else {
+                if (posText)
+                    content.push({text: posText, link: link, textData: textData, textClass: fixedContentTextClass});
+                if (mapText)
+                    content.push({text: mapText, textClass: fixedContentTextClass});
+            }
+
+            if (this.annotation)
+                content.push({
+                    text     : extended ? '<strong>Anmærkning</strong><br>' + this.annotation : {da: 'Anmærkning...'/*, en:'Annotation...'*/},
+                    textClass: (extended ? 'd-block' : fixedContentTextClass) + ' ' + this.parent.options.annotationClass
+                });
+
+
+            $body._bsAddHtml(content);
+        },
+
+
+        /*****************************************
+        extendedContent
+        *****************************************/
+        extendedContent: function(allOpen, $body){
+            $.bsAccordion( this.accordionOptions(allOpen) ).appendTo($body);
+        },
+
+        /*****************************************
+        accordionOptions
+        *****************************************/
+        accordionOptions: function(allOpen){
+            var _this         = this,
+                accordionList = [];
+
+            //Accordion list with all text
+            var first = true;
+            this.contentList().forEach((section) => {
+                accordionList.push({
+                    text   : section.header,
+                    content: section.content,
+                    open   : first
+                });
+                first = false;
+            });
+
+
+            //Add accordions with photos, plans and bridge light
+            [
+                {listId: 'photoList',    text: {da: 'Billeder'/*, en: 'Pictures'*/}, datePreText: [{da: 'Fotograferet'/*, en:'MANGLER'*/}] },
+                {listId: 'planList',     text: _this.setup.planHeader,               datePreText: [_this.setup.planHeader, {da: 'opdat.'/*, en:'MANGLER'*/}] },
+                {listId: 'brotabelList', text: {da: 'Brotabel'/*, en: 'MANGLER'*/},  datePreText: [{da: 'Brotabel opd.'/*, en:'MANGLER'*/}] }
+            ].forEach((options) => {
+                var list = _this[options.listId];
+                if (list && list.length){
+                    var carouselList = [];
+                    list.forEach((imgOpt) => {
+                        var url = ns.dataFilePath(true, _this.parent.options.subDir, _this.parent.options.images+"/") + imgOpt.fileName,
+                            subText = [...options.datePreText];
+                        if (imgOpt.date)
+                            subText.push(getDateStr(imgOpt.date));
+                        carouselList.push({
+                            //icon:
+                            url    : url,
+                            text   : imgOpt.text,
+                            subText: imgOpt.date ? subText : null
+                        });
+                    });
+                    accordionList.push({
+                        text    : options.text,
+                        content : {
+                            type           : 'carousel',
+                            list           : carouselList,
+                            innerHeight    : allOpen ? 427 : 320,   //The height of the inner-container with the items.
+                            fitHeight      : true,                  //If true and innerHeight is set: All images get max-height = innerHeight
+                            itemsMaxOwnSize: false,                 //If true, or innerHeight and fitHeight is set: Image size can be bigger that its original size
+                            defaultOnClick : true                   //If true and no itemOnClick or item.onClick: Click on image open a modal-window
+                        }
+                    });
+                }
+            });
+
+            //Add special header with source and last updated
+            var textUpdated = this.options['TEKST_OPDATERET'],
+                planUpdated = this.options['PLAN1_OPDATERET']    || this.options['PLAN_OPDATERET1'] ||
+                              this.options['BROPLAN1_OPDATERET'] || this.options['BROPLAN_OPDATERET1'],
+                content = [{
+                    icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']
+                }];
+
+            if (textUpdated || planUpdated){
+                content.push({da:'<br>Sidste opdateringer:'/*, en: 'Same as da' */});
+                if (textUpdated)
+                    content.push({da:'<br>Tekst: ' + getDateStr(textUpdated)/*, en: 'Same as da' */});
+                if (planUpdated)
+                    content.push({da:'<br>' + (this.type == 'BR' ? 'Broplan' : 'Plan') + ': ' + getDateStr(planUpdated)/*, en: 'Same as da' */});
+            }
+
+            accordionList.push({
+                text    : {da: 'Kilde'/*, en: 'Source'*/},
+                content : content
+            });
+
+            return {
+                type      : 'accordion',
+                list      : accordionList,
+                neverClose: allOpen
+            };
+        }
     };
 }(jQuery, L, this.i18next, this.moment, this, document));
 
@@ -352,8 +510,6 @@ window.niels++;
 location-DK.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
@@ -368,7 +524,7 @@ window.niels = 0;
     https://www.danskehavnelods.dk/planer/jpg_200/NKTANHOL.jpg
     **********************************************************************/
     nsHL.Location_DK = function(/*options, parent*/){
-this.INDEX = this.INDEX || 0;
+        this.type = 'DK';
         nsHL.Location.apply(this, arguments);
     };
 
@@ -378,9 +534,8 @@ this.INDEX = this.INDEX || 0;
 
             id2OptionsId: {id: 'HAVNE_ID', name: 'NAVN'},
             planIndex   : '',
-            pdfUrl      : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=0&ID=<ID>&NR=2',
-            photoUrlMask: 'https://www.danskehavnelods.dk/foto/<FILENAME>',
-            planUrlMask : 'https://www.danskehavnelods.dk/planer/jpg_200/<FILENAME>'
+            externalUrl : 'https://www.danskehavnelods.dk/#HID=<ID>'
+
         },
 
         /***********************************
@@ -451,8 +606,6 @@ this.INDEX = this.INDEX || 0;
 location-GL.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
@@ -470,17 +623,15 @@ window.niels = 0;
 
     **********************************************************************/
     nsHL.Location_GL = function(/*options, parent*/){
-this.INDEX = 1;
         nsHL.Location_DK.apply(this, arguments);
+        this.type = 'GL';
     };
 
     nsHL.Location_GL.prototype = $.extend(true, {}, nsHL.Location_DK.prototype, {
         setup: {
             colorName   : 'harbor-gl',
+            externalUrl : 'https://www.gronlandskehavnelods.dk/#HID=<ID>'
 
-            pdfUrl      : 'https://www.gronlandskehavnelods.dk/PDF/Report/<ID>?type=0&onlyText=0',
-            photoUrlMask: 'https://www.gronlandskehavnelods.dk/foto/<FILENAME>',
-            planUrlMask : 'https://www.gronlandskehavnelods.dk/planer/jpg_200/<FILENAME>'
         },
 
         /***********************************
@@ -547,8 +698,6 @@ this.INDEX = 1;
 location-Bridge.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
@@ -560,13 +709,6 @@ window.niels = 0;
     /**********************************************************************
     Location_Bridges
     Location with danish bridges
-
-    Photo = https://www.danskehavnelods.dk/foto/KOBBRYGB1.jpg
-    Plan = https://www.danskehavnelods.dk/planer/jpg_200/KOBBRYGB.jpg
-    Brolys = https://www.danskehavnelods.dk/brolys/jpg_200/tabel3.jpg
-
-
-
     **********************************************************************/
     /*
     Some of the bridges inside Copenhagen has positions a bit out of place.
@@ -594,22 +736,22 @@ window.niels = 0;
     };
 
     nsHL.Location_Bridges = function(/*options, parent*/){
-this.INDEX = 2;
         nsHL.Location.apply(this, arguments);
+        this.type = 'BR';
     };
 
     nsHL.Location_Bridges.prototype = $.extend(true, {}, nsHL.Location.prototype, {
         setup: {
-            id2OptionsId: {id: 'BRO_ID', name: 'NAME'},
-            planIndex  : 'BRO',
+            id2OptionsId: {id: 'BRO_ID', name: 'NAVN'},
+            planPrefix  : 'BRO',
+
             optionsFunc: function(options){
                 if (bridgePosition[options.BRO_ID])
                     options.latLng = L.latLng( bridgePosition[options.BRO_ID] );
             },
-            pdfUrl   : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=1&ID=<ID>&NR=2',
+            externalUrl : 'https://www.danskehavnelods.dk/#BID=<ID>',
+            planHeader  : {da:'Broplan', /*en:'MANGLER'*/}
 
-            photoUrlMask: 'https://www.danskehavnelods.dk/foto/<FILENAME>',
-            planUrlMask : 'https://www.danskehavnelods.dk/planer/jpg_200/<FILENAME>'
 
         },
 
@@ -644,6 +786,244 @@ this.INDEX = 2;
 
 ;
 /****************************************************************************
+5-location-content.js,
+Setup to create content for different classes of Locations
+****************************************************************************/
+(function ($, L, i18next, moment, window, document, undefined) {
+	"use strict";
+
+	window.fcoo = window.fcoo || {};
+    var ns = window.fcoo = window.fcoo || {},
+        nsHL = ns.Havnelods = ns.Havnelods || {};
+
+
+    /***********************************************************************************************
+    contentList is a list of sections. each section contains a header and a list of ids and options
+    for the data given the section
+
+    CONTENTLIST: []SECTION
+    SECTION = {
+        header : {da:STRING, en:STRING},
+        content: STRING or []STRING or []ELEMENT
+        class  : class-name for the content
+    }
+    ELEMENT: {
+        id    : STRING,
+        around: [STRING, STRING]
+        before: STRING  - only if there is an element before
+        after : STRING  - only if there is an element after
+        format: function( content ) return formatted string
+    }
+
+    ***********************************************************************************************/
+    function Section(options){
+        this.header = $._bsAdjustText(options.header);
+        //this.header.en = this.header.en || this.header.da;
+        this.before = options.before;
+        this.after = options.after;
+        this.class = options.class || '';
+
+        this.notType  = options.notType;
+        this.onlyType = options.onlyType;
+
+        var content = options.content;
+        if (typeof content == 'string')
+            content = [content];
+        if ($.isArray(content))
+            content.forEach( (element, index) => {
+                if (typeof element == 'string')
+                    content[index] = {id: element};
+            });
+
+        var list = this.list = [];
+        content.forEach( (element) => {
+            list.push(element);
+        });
+    }
+
+    Section.prototype = {
+        content: function(hlType, hlOptions){
+            var result = '',
+                after = '',
+                list  = [];
+
+            //Create local copy of this.list with type-versions
+            this.list.forEach( (element) => {
+                var newElement = $.extend(true, {}, element);
+
+                $.each( newElement, (id, options) => {
+                    if ($.isPlainObject(options))
+                        newElement[id] = options[hlType];
+                });
+                list.push(newElement);
+            });
+
+            list.forEach( (element) => {
+                var id = element.id || null,
+                    value = id ? hlOptions[element.id] : undefined;
+
+                if ((value === undefined) || (value === false))
+                    return;
+
+                value = element.format ? element.format(value) : value;
+
+                if (after)
+                    result = result + after;
+
+                if (result && element.before)
+                    result = result + element.before;
+
+                if (element.around)
+                    result = result + (element.around[0] || '');
+
+                result = result + value;
+
+                if (element.around)
+                    result = result + (element.around[1] || '');
+
+                after = element.after || '';
+
+            });
+
+            if (result && this.before)
+                result = this.before + result;
+
+            if (result && this.after)
+                result = result + this.after;
+
+            result = result.replaceAll('\n', '<br>');
+
+            return result;
+        }
+    };
+
+    function HAVNEKATEGORI2text( havnekategori ){
+        switch (''+havnekategori){
+            case '1': return 'By';      //Town,
+            case '2': return 'Bygd';    //Hamlet
+            case '3': return 'Station'; //Station
+        }
+        return '';
+    }
+
+    nsHL.contentList = [{
+        /*
+        Befolkning - only for Harbor-GL
+        */
+        header  : {da:'Befolkning'},
+        onlyType: 'GL',
+        content: [
+            {id: 'HAVNEKATEGORI',          after : '<br>', format: HAVNEKATEGORI2text},
+            {id: 'INDBYGGERANTAL',         after : ' indbyggere'},
+            {id: 'INDBYGGERANTAL_AARSTAL', around: [' (',')']}
+        ]
+    }];
+
+    //Add simple SECTION for no-bridge
+    var list = [
+        'Havnen'                  , 'HAVNEN',
+        'Stedbeskrivelse'         , 'STEDBESKRIVELSE',
+        'Dybder'                  , 'DYBDER',
+        'Største skibe'           , 'STORSTE',
+        'Vandstand'               , 'VANDSTAND',
+        'Strøm'                   , 'STROM',
+        'Is'                      , 'IS',
+        'Vind'                    , 'VIND',
+        'Tåge'                    , 'TAAGE',
+        'Besejling'               , 'BESEJLING',
+        'Dagens længde'           , 'DAGENS_LAENGDE',
+        'Vejbro'                  , 'VEJBRO',
+        'Fartbegrænsning'         , 'FARTBEGR',
+        'Afmærkning'              , 'AFMAERK',
+        'Erhverv'                 , 'ERHVERV',
+        'Forsyning'               , 'FORSYNING',
+        'Ankerplads'              , 'ANKERPL',
+        'Redningsstation'         , 'REDNINGSSTATION',
+        'Båker'                   , 'BAAKER',
+        'Fyr'                     , 'FYR',
+        'Tågesignal'              , 'TAAGESIGNAL',
+        'Kabler'                  , 'KABLER',
+        'Ledninger'               , 'LEDNINGER',
+        'Ankerplads'              , 'ANKERPL',
+        'Ankringsforbud'          , 'ANKRINGSFORBUD',
+        'Lods'                    , 'LODS',
+        'Lodspligt'               , 'LODSTVANG',
+//      'Havnelods'               'HAVNELODSEN'         Bruges nok ikke
+        'Bugsering'               , 'BUGSERING',
+        'Ressourcer'              , 'RESSOURCER',
+        'Havnekontor'             , 'HAVNEKONTOR',
+        'Toldklarering'           , 'TOLDKLARERING',
+        'Havneområde'             , 'HAVNEOMRAADE',
+        'Kommunikation'           , 'KOMMUNIKATION',
+        'Særlige bestemmelser'    , 'SAERLIGE'
+    ];
+
+    for (var i=0; i<list.length; i=i+2)
+        nsHL.contentList.push({
+            header : {da: list[i]},
+            content: list[i+1],
+            notType: 'BR'
+        });
+
+    //Add simple SECTION for only-bridge
+    //The following elements are included in SAERLIGE: BEMAERKNINGER, EJER, DRIFT_OG_VEDLIGHOLD, BRO_AABNINGER
+    var contentList = [{
+            content: 'BROTYPE',                 header: {da: 'Brotype'}
+        },{
+            content: 'LANGDE',                  header: {da: 'Brolængde'}, after: ' m',
+        },{
+            content: 'GENSEJL_HOJDE',           header: {da: 'Gennemsejlingshøjde'/*, en: 'Vertical clearance'*/}
+        },{
+            content: 'GENSEJL_BREDDE',          header: {da: 'Gennemsejlingsbredde'/*, en: 'Horizontal clearance'*/}
+        },{
+            content: 'AFMARKNING',              header: {da: 'Afmærkning'}
+        },{
+            content: 'STROM',                   header: {da: 'Strøm'}
+        },{
+            content: 'BESEJLING',               header: {da: 'Besejling'}
+        },{
+            content: 'SEJLADS_GENNEM_BROER',    header: {da: 'Sejlads gennem broen'}
+        },{
+            content: 'BROVAGTENS_BEFOEJELSER',  header: {da: 'Brovagtens beføjelser'}
+        },{
+            content: 'AABNINGSTIDER',           header: {da: 'Åbningstider'}
+        },{
+            content: 'KABLER',                  header: {da: 'Kabler'}
+        },{
+            content: 'KOMMUNIKATION',           header: {da: 'Kommunikation'}
+        },{
+            content: 'SIGNALER_FRA_BRO',        header: {da: 'Signaler fra bro'}
+        },{
+            content: 'GENERELLE_BESTEMMELSER',  header: {da: 'Generelle bestemmelser' }
+        },{
+            content: 'SAERLIGE',                header: {da: 'Særlige bestemmelser' }
+        }
+    ];
+
+    contentList.forEach( (options) => {
+        options.onlyType = 'BR';
+        nsHL.contentList.push(options);
+    });
+
+
+
+
+
+
+
+
+    //Adjust nsHL.contentList
+    nsHL.contentList.forEach( (options, index) => {
+        nsHL.contentList[index] = new Section(options);
+    });
+
+}(jQuery, L, this.i18next, this.moment, this, document));
+
+
+
+
+;
+/****************************************************************************
 	fcoo-havnelods.js,
 
 	(c) 2021, FCOO
@@ -659,48 +1039,22 @@ this.INDEX = 2;
     var ns = window.fcoo = window.fcoo || {},
         nsHL = ns.Havnelods = ns.Havnelods || {};
 
-    /*
-    Names for menus:
-        Havne og Broer (Danske Havnelods)
-        Harbors and Bridges (only in Danish)
-    OR
-        Danish Harbors and Bridges (only in Danish)
-    OR
-        Danish Marinas, Ports, and Bridges (only in Danish)
-    OR
-        Denmark
-            Harbors
-                (o) Alle / All
-                ( ) Kun Erhvervshavne / Only Commertial Ports
-                ( ) Kun Lystbådehavne / Only Marinas
-            Bridges
-
-    Sub-layers:
-    Lystbådehavne / Marinas
-    Erhvervshavne / Commertial Ports
-    Broer / Bridges
-
-    Greenland:
-        By/Town,
-        Bygd/Hamlet
-        Station/Station
-
-*/
-
-
     /**********************************************************************
     L.GeoJSON.Havnelods(options)
     Generel constructor for all variations
     ***********************************************************************/
     L.GeoJSON.Havnelods = L.GeoJSON.extend({
-        dataIndex          : 0,
-        locationConstructor: null,
-
         //Default options
         options: {
-            subDir      : 'havnelods',
-            fileName    : 'havnelods.json',
+            idName          : 'HAVNE_ID',
+            subDir          : 'havnelods',
+            fileName        : 'havnelods.json',
+            images          : 'images',
+
+            annotationId    : 'ANMERKNING',
+            annotationClass : 'hl-annotation alert-info accordion-body accordion'
         },
+        locationConstructor: null,
 
 
 
@@ -726,40 +1080,32 @@ this.INDEX = 2;
         resolve
         *********************************************/
         resolve: function(data){
-            /*
-            data = {id0: []LOCATION, id1:[]LOCATION, id2:[]LOCATION}
-            Using options.dataIndex to get correct data-set
-            */
+            //data = []LOCATION
             var _this = this,
                 geoJSONData = {
                     type    : "FeatureCollection",
                     features: []
-                },
-                dataIndex = this.dataIndex,
-                index = 0,
-                dataSet = [];
+                };
 
-            $.each(data, function(id, subData){
-                if (index == dataIndex)
-                    dataSet = subData;
-                index++;
-            });
             this.list = [];
-
-            $.each(dataSet, function(index, options){
+            data.forEach((options) => {
+                /*TEST: Only Langebro
+                if (options.BRO_ID != '7d17393b-3e61-4157-be25-b8861a78b9ad')
+                    return false;
+                //*/
                 var location = new _this.locationConstructor(options, _this);
                 location.index = _this.list.length;
                 _this.list.push(location);
 
-                geoJSONData.features.push({
-                    type      : "Feature",
-                    geometry  : {type: "Point", coordinates: [location.latLng.lng, location.latLng.lat]},
-                    properties: location
-                });
+                if (location.latLng)
+                    geoJSONData.features.push({
+                        type      : "Feature",
+                        geometry  : {type: "Point", coordinates: [location.latLng.lng, location.latLng.lat]},
+                        properties: location
+                    });
             });
 
             this.addData(geoJSONData);
-//console.log(niels);
         },
 
         /*********************************************
@@ -777,9 +1123,10 @@ this.INDEX = 2;
     ***********************************************************************
     **********************************************************************/
     L.GeoJSON.Havnelods_DK = L.GeoJSON.Havnelods.extend({
-        dataIndex: 1,
-        locationConstructor: nsHL.Location_DK,
-
+        options: {
+            fileName: 'havnelods_DK.json'
+        },
+        locationConstructor: nsHL.Location_DK
     });
 
     /*********************************************************************
@@ -789,7 +1136,9 @@ this.INDEX = 2;
     **********************************************************************
     **********************************************************************/
     L.GeoJSON.Havnelods_GL = L.GeoJSON.Havnelods.extend({
-        dataIndex: 2,
+        options: {
+            fileName: 'havnelods_GL.json'
+        },
         locationConstructor: nsHL.Location_GL
     });
 
@@ -800,169 +1149,12 @@ this.INDEX = 2;
     **********************************************************************
     **********************************************************************/
     L.GeoJSON.Havnelods_Bridges = L.GeoJSON.Havnelods.extend({
-        dataIndex: 0,
-        locationConstructor: nsHL.Location_Bridges,
-
+        options: {
+            idName    : 'BRO_ID',
+            fileName  : 'havnelods_BR.json',
+            planHeader: {da:'Broplan'/*, en:'MANGLER'*/}
+        },
+        locationConstructor: nsHL.Location_Bridges
     });
-
-/* Remaining options for bridges
-Beliggenhed
-HOVEDFARVAND_DDL2 - BELIGGENHED
-LATLNG - KORT_NR
-
-Anmærkning (i "blå" fremhævning)
-ANMAERKNING_FRA_DATO - ANMAERKNING_TIL_DATO
-ANMERKNING
-
-Brotype
-REFNAME
-
-Brolængde
-LANGDE
-
-Gennemsejlingshøjde - Vertical clearance
-GENSEJL_HOJDE
-
-Gennemsejlingsbredde - Horizontal clearance
-GENSEJL_BREDDE
-
-Afmærkning
-AFMARKNING
-
-Strøm
-STROM
-
-
-Besejling
-BESEJLING
-
-Sejlads gennem broen
-SEJLADS_GENNEM_BROER
-
-Brovagtens beføjelser
-BROVAGTENS_BEFOEJELSER
-
-Åbningstider
-AABNINGSTIDER
-
-Kabler
-KABLER
-
-Kommunikation
-KOMMUNIKATION
-
-Signaler fra bro
-SIGNALER_FRA_BRO
-
-Brotabel
-BROLYSTABEL BROLYSTABEL_OPDATERET
-
-Generelle bestemmelser
-GENERELLE_BESTEMMELSER
-
-Særlige bestemmelser
-FRA - TIL
-SAERLIGE_BESTEM
-
-Bemærkninger
-BEMAERKNINGER
-
-
-Ejer, drift og vedligeholdelse, etc
-EJER               : Eks = "Broen ejes af Odense Kommune",
-DRIFT_OG_VEDLIGHOLD: Eks = "Odense Kommune\r\nBy-og Kulturforvaltningen\r\n\r\nDrift og anlæg\r\nOdense Slot, Nørregade 36\r\n5100 Odense C",
-BRO_AABNINGER      : Eks = "LINDØ port of ODENSE\r\nKystvejen 100\r\n5330 Munkebo\r\nTlf.: 7228 2010\r\nE-mail: info@lpo.dk / havnekontor@lpo.dk\r\nHjemmeside: www.lpo.dk",
-
-Publikationer
-Link til officielle version hos GST
-
-Kilde og opdatering
-    (c) Geodatastyrelsen 12345 danskehavnelods.dk
-    Sidste opdatering
-    Tekst: TEKST_OPDATERET
-    Plan 1: Findes
-    Plan 2: Findes
-
-*/
-
-
-/* HAVENLODS FOR DK AND GL
-Befolkning (KUN GL)
-HAVNEKATEGORI
-INDBYGGERANTAL indbygger(e)/Inhabitant(s) (INDBYGGERANTAL_AARSTAL)
-
-Remaining options
-    LANDSDEL
-    HOVEDFARVAND_DDL2
-    FARVANDSAFSNIT_A
-    FARVANDSAFSNIT_B
-    FARVANDSAFSNIT_C
-    KYSTAFSNIT
-    ERHVERVSHAVN
-    LYSTBAADEHAVN
-            HAVNEKATEGORI - KUN GL: 1:By/Town, 2:Bygd/Hamlet 3:Station/Station
-    HAVNELODSEN
-    KORT_NR
-    HAVNEPLANSKORT_NR
-    NATIONALITET
-            INDBYGGERANTAL - KUN GL
-            INDBYGGERANTAL_AARSTAL - KUN GL
-    FORBUD_MOD_SEJLADS_MM
-    REGLER_FOR_SEJLADS
-    SEJLADS_MED_13_M_DYBGANG
-    ANVENDELSE_AF_LODS
-    ANDRE_BEKENDTGOERELSER
-    GODKENDELSESDATO
-    IKRAFTTRAEDELSESDATO
-    REGLEMENT_KUNDGJORT_I_EFS_NR
-    REGLEMENT_I_ARKIV
-    BEMAERKNING
-    TEKST_OPDATERET
-    HAVNEN
-    DYBDER
-    STORSTE
-    VANDSTAND
-    STROM
-    ISS
-    VIND
-    TAAGE
-    VEJBRO
-    TUNNEL
-    FARTBEGR
-    AFMAERK
-    BAAKER
-    FYR
-    TAAGESIGNAL
-    KABLER
-    LEDNINGER
-    ANKERPL
-    ANKRINGSFORBUD
-    LODS
-    LODSTVANG
-    BUGSERING
-    REDNINGSSTATION
-    RESSOURCER
-    HAVNEKONTOR
-    TOLDKLARERING
-    HAVNEOMRAADE
-    SAERLIGE
-    ADVARSEL
-    SVLIGGEPLADSER
-    SVSAERLIGEFORHOLD
-    FRA
-    TIL
-    BESEJLING_CLOB
-    DAGENS_LAENGDE
-    PIKTOGRAMMER_OPD_DATO
-    ANMERKNING
-    ANMAERKNING_FRA_DATO
-    ANMAERKNING_TIL_DATO
-    OFFENTLIG
-    UN_CODE
-    STEDBESKRIVELSE
-    KOMMUNIKATION
-    ERHVERV
-    FORSYNING
-*/
 
 }(jQuery, L, this.i18next, this.moment, this, document));

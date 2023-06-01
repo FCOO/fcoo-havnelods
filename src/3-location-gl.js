@@ -2,8 +2,6 @@
 location-GL.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
@@ -21,17 +19,15 @@ window.niels = 0;
 
     **********************************************************************/
     nsHL.Location_GL = function(/*options, parent*/){
-this.INDEX = 1;
         nsHL.Location_DK.apply(this, arguments);
+        this.type = 'GL';
     };
 
     nsHL.Location_GL.prototype = $.extend(true, {}, nsHL.Location_DK.prototype, {
         setup: {
             colorName   : 'harbor-gl',
+            externalUrl : 'https://www.gronlandskehavnelods.dk/#HID=<ID>'
 
-            pdfUrl      : 'https://www.gronlandskehavnelods.dk/PDF/Report/<ID>?type=0&onlyText=0',
-            photoUrlMask: 'https://www.gronlandskehavnelods.dk/foto/<FILENAME>',
-            planUrlMask : 'https://www.gronlandskehavnelods.dk/planer/jpg_200/<FILENAME>'
         },
 
         /***********************************

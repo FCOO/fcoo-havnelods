@@ -2,14 +2,15 @@
 location.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
 	window.fcoo = window.fcoo || {};
     var ns = window.fcoo = window.fcoo || {},
         nsHL = ns.Havnelods = ns.Havnelods || {},
+
+
+        useMegaWidthModal = ns.modernizrDevice.isDesktop || ns.modernizrDevice.isTablet,
 
         //Common options for marker
         bsMarkerOptions = {
@@ -24,8 +25,33 @@ window.niels = 0;
         };
 
 
-window.plans = [0,0,0];
-window.photos = [0,0,0];
+    var modalWindow = null;
+
+    var gst_footer = [
+            {icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']},
+            {text: ['(','abbr:gst',')'], textClass:['me-0','me-0']}
+        ];
+
+
+
+    function onClickPosition(){
+        var location = $(this).data('hl_location');
+        if (location.parent.options && location.parent.options.onClickPosition)
+            location.parent.options.onClickPosition(location);
+        return false;
+    }
+
+
+    function getDateStr(date){
+        if (!date)
+            return '';
+
+        //Date come is different formates: "YYYY-MM-DDTHH:MM:SS" "YYYY-MM-DD 00:00" "YYYY-MM-D" "MM-DD-YYYY"
+        var dateStr = date.substring(0,10),
+            format  = dateStr[2] == '-' ? 'DD-MM-YYYY' : 'YYYY-MM-DD';
+
+        return moment(dateStr, format).dateFormat();
+    }
 
     /***********************************************************************************************
     Location
@@ -36,17 +62,16 @@ window.photos = [0,0,0];
     nsHL.Location = function(options, parent){
         var _this = this;
         this.options = options;
-
         this.parent = parent;
-
         this.colorName = this.setup.colorName || 'blue';
+
 
         //Convert all "0" and "-1" to false and true and replace "\r\n" with "<br>"
         $.each(options, function(id, value){
-            if (value === "0")
+            if ((value === "0") || (value === 0))
                 value = false;
             else
-            if (value === "-1")
+            if ((value === "-1") || (value === -1))
                 value = true;
             else
                 if (typeof value == 'string')
@@ -78,6 +103,23 @@ window.photos = [0,0,0];
             return result;
         }
         //********************************************
+        function getImageList(fileNamePrefix, textPrefix='UNKNOWN', infoPrefix='UNKNOWN', datePrefix='UNKNOWN', datePostfix='', photographerPrefix='UNKNOWN'){
+            var result = [];
+            for (var index = 0; index < 20; index++){
+                var indexStr = index ? ''+index : '';
+                if (options[fileNamePrefix + indexStr]){
+                    result.push({
+                        fileName    : options[fileNamePrefix + indexStr] + '.jpg',
+                        text        : options[textPrefix + indexStr] || '',
+                        info        : options[infoPrefix + indexStr] || '',
+                        date        : options[datePrefix + indexStr + datePostfix] || options[datePrefix + datePostfix + indexStr] || '',
+                        photographer: options[photographerPrefix + indexStr] || ''
+                    });
+                }
+            }
+            return result;
+        }
+        //********************************************
         if (options.latLng)
             this.latLng = options.latLng;
         else {
@@ -86,54 +128,42 @@ window.photos = [0,0,0];
 
             this.latLng = L.latLng( window.latLngFormat(trimLatLng(options.BREDDE), trimLatLng(options.LAENGDE)).value() );
 
+            if (!this.latLng)
+                console.error('ERROR Invalid lat long:', 'id='+this.id, 'lat='+options.BREDDE, 'long='+options.LAENGDE);
+
             window.latLngFormat.setFormat( saveLatLngFormat, true );
         }
 
-        //Create photoList = []{fileName, text, date, photographer}
+        //Get annotation
+        this.annotation = parent.options.annotationId ? options[parent.options.annotationId] : null;
 
-        this.photoList = [];
-        for (var photoIndex = 1; photoIndex < 20; photoIndex++)
-            if (options['FOTO'+photoIndex]){
-window.photos[this.INDEX]++;
-                this.photoList.push({
-                    fileName    : options['FOTO'+photoIndex].toUpperCase() + '.jpg',
-                    text        : options['FOTOTEKST'+photoIndex] || '',
-                    date        : options['OPR'+photoIndex] || '',
-                    photographer: options['FOTOGRAFNAVN'+photoIndex] || ''
-                });
-window.niels++;
-            }
+
+        //Create photoList = []{fileName, text, date, photographer}
+        this.photoList = getImageList('FOTO', 'FOTOTEKST', 'UNKNOWN', 'OPR', '', 'FOTOGRAFNAVN');
 
         //Create planList = []{fileName, text, info, date}
-window.plans[this.INDEX] = window.plans[this.INDEX] || 0;
-        this.planList = [];
         var planPrefix = this.setup.planPrefix || '';
-        for (var planIndex = 0; planIndex < 20; planIndex++){
-            var indexStr = planIndex ? ''+planIndex : '';
-            if (options[planPrefix+'PLAN'+indexStr]){
-window.plans[this.INDEX]++;
-                this.planList.push({
-                    fileName    : options[planPrefix+'PLAN'+indexStr].toUpperCase() + '.jpg',
-                    text        : options[planPrefix+'PLANTEKST'+indexStr] || '',
-                    info        : options[planPrefix+'PLAN_INFO'+indexStr] || '',
-                    date        : options[planPrefix+'PLAN'+indexStr+'_OPDATERET'] || ''
-                });
-window.niels++;
-            }
+        this.planList = getImageList(planPrefix+'PLAN', planPrefix+'PLANTEKST', planPrefix+'PLAN_INFO', planPrefix+'PLAN', '_OPDATERET');
 
+        //Create brotabelList (only for bridges)
+        this.brotabelList = getImageList('BROLYSTABEL');
 
-        }
     };
 
+    /***********************************************************************************************
+    Location.prototype
+    ***********************************************************************************************/
     nsHL.Location.prototype = {
         setup: {
             id2OptionsId : {}, //{id:ID} where id is this and ID is in options. Eq. {"id": "BRO_ID"}
             planPrefix   : '', //STRING - Prefix for options-ids with info on plans for the location
-            pdfUrl       : '', //STRING
-            photoUrlMask : '', //STRING. If given it must contain <FILENAME>
-            planUrlMask  : '', //STRING. If given it must contain <FILENAME>
-            brolysUrlMask: '', //STRING. If given it must contain <FILENAME>
-            optionsFunc : function(/*options*/){} //Adjust options
+            externalUrl  : '', //STRING
+
+
+            optionsFunc : function(/*options*/){}, //Adjust options
+
+            planHeader  : {da:'Havneplan'/*, en:'MANGLER'*/}
+
         },
 
 
@@ -162,43 +192,58 @@ window.niels++;
         },
 
         /*****************************************
-        _photoPlanUrl
+        buttonGST
         *****************************************/
-        _photoPlanUrl: function(fileName, urlMask){
-            return urlMask ? urlMask.replace('<FILENAME>', fileName) : ns.dataFilePath(true, this.parent.options.subDir, "photos_and_plans/") + fileName;
+        buttonGST: function(){
+            if (this.setup.externalUrl)
+                return {
+                    id     :'dhl_show'+this.id,
+                    icon   : 'far fa-link',
+                    text   : ['abbr:gst', {da: 'off. version', en:'Off. Version'}],
+                    class : 'min-width-8em',
+                    onClick: this.showGST.bind(this)
+                };
+            else
+                return null;
         },
 
         /*****************************************
-        photoUrl
+        showGST
         *****************************************/
-        photoUrl: function(index){
-            return index < this.photoList.length ? this._photoPlanUrl( this.photoList[index].fileName, this.setup.photoUrlMask ) : '';
+        showGST: function(){
+            window.open( this.setup.externalUrl.replace('<ID>', this.id) );
         },
 
         /*****************************************
-        planUrl
+        showInModalWindow
         *****************************************/
-        planUrl: function(index){
-            return index < this.planList.length ? this._photoPlanUrl( this.planList[index].fileName, this.setup.planUrlMask ) : '';
+        showInModalWindow: function(){
+            if (modalWindow)
+                modalWindow.remove();
+
+            modalWindow = $.bsModal({
+                header      : this.header,
+                flexWidth   : true,
+
+                extraWidth  : !useMegaWidthModal,
+                megaWidth   : useMegaWidthModal,
+
+
+                content     : this.accordionOptions(true),
+                footer      : gst_footer,
+                buttons     : [this.buttonGST()],
+                show        : true
+            });
         },
 
-        /*****************************************
-        showPdf
-        *****************************************/
-        showPdf: function(){
-            $.bsModalFile(
-                this.setup.pdfUrl.replace('<ID>', this.id),
-                {header: this.header}
-            );
-        },
 
         /*****************************************
         createMarker
         *****************************************/
         createMarker: function(){
-            var this_show = $.proxy(this.showPdf, this);
-
+            var this_showInModalWindow = this.showInModalWindow.bind(this);
             return L.bsMarkerCircle( this.latLng, this.getMarkerOptions() )
+
                         .bindPopup({
 //HER                            flexWidth: true,
                             fixable : true,
@@ -206,71 +251,254 @@ window.niels++;
                             //noVerticalPadding  :  true,
                             //noHorizontalPadding: true,
 
-                            onNew  : this_show,
+                            onNew  : this_showInModalWindow,
                             header : this.header,
 
                             maxHeight: 260,
                             width    : 260,
-                            content  : $.proxy(this.content_popup, this),
+                            clickable: true,
+
+                            fixedContent: this.fixedContent.bind(this, false),
+
+                            content     : null,
 
                             extended: {
-                                maxHeight: 600,
-                                width    : 600,
-                                content  : $.proxy(this.content_popup_extended, this),
-                                footer   : true
+                                maxHeight   : 600,
+                                width       : 511,  //Allows pictures to be 3/4 * 427
+                                clickable   : false,
+                                scroll      : true,
+                                fixedContent: this.fixedContent.bind(this, true),
+
+                                //content     : this.extendedContent(),
+                                content     : this.extendedContent.bind(this, false ),
+
+                                footer      : true
                             },
 
-                            buttons:[{
-                                id     :'dhl_show'+this.id,
-                                //icon   : $.bsNotyIcon.info,
-                                icon   : 'far fa-file-pdf',
-                                text   : ['abbr:gst', {da: 'officielle version', en:'Official Version'}],
-                                onClick: this_show
-                            }],
-                            footer: [{icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']}, {text: ['(','abbr:gst',')'], textClass:['mr-0','mr-0']}]
+                            buttons:[
+                                {
+                                    id     :'window_show'+this.id,
+                                    icon   : 'fal fa-window-maximize',
+                                    text   : {da: 'Vis mere', en:'Show more'},
+                                    class  : 'min-width-8em',
+                                    onClick: this_showInModalWindow
+                                },
+                                this.buttonGST()
+                            ],
+                            footer: gst_footer
                         });
-        },
-
-
-        /*****************************************
-        content_popup
-        *****************************************/
-        content_popup: function($body, popup/*,map*/){
-            var url = this.photoUrl(0) || this.planUrl(0);
-            if (url)
-                $('<img src="' + url + '" style="cursor: pointer; max-width:100%; max-height:100%"/>')
-                    .i18n(this.name, 'title')
-                    .on('click', function(){
-                        popup.$contentNode._bsModalSetSize( $.MODAL_SIZE_EXTENDED );
-                    })
-                    .appendTo($body);
-            else
-                $('<div/>')._bsAddHtml({text:{da:'MANGLER', en:'NOT READY'}}).appendTo($body);
-
-
 
         },
 
 
         /*****************************************
-        content_popup_extended
+        contentList
         *****************************************/
-        content_popup_extended: function($body, popup/*,map*/){
-            var url = this.photoUrl(0) || this.planUrl(0);
-            if (url)
-                $('<img src="' + url + '" style="cursor: pointer; max-width:100%; max-height:100%"/>')
-                    .i18n(this.name, 'title')
-                    .on('click', function(){
-                        popup.$contentNode._bsModalSetSize( $.MODAL_SIZE_NORMAL );
-                    })
-                    .appendTo($body);
-            else
-                $('<div/>')._bsAddHtml({text:{da:'MANGLER', en:'NOT READY'}}).appendTo($body);
+        contentList: function(){
+            var result = [],
+                type = this.type;
 
-
-
+            nsHL.contentList.forEach( (section) => {
+                if ( (!section.onlyType || section.onlyType.includes(type)) &&
+                     (!section.notType  || (section.notType != type) ) )  {
+                    var sectionContent = section.content(type, this.options);
+                    if (sectionContent)
+                        result.push({
+                            header  : section.header,
+                            content : sectionContent,
+                        });
+                }
+            });
+            return result;
         },
 
+
+
+       /*****************************************
+        fixedContent
+
+        Beliggenhed
+        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
+        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
+        Bridges DK: BELIGGENHED<br>Position - KORT_NR
+
+        header  : {da:'Beliggenhed'},
+        content : [
+            {id: {DK: 'HOVEDFARVAND_DDL2', GL: 'LANDSDEL',          BR: 'BELIGGENHED'}                  },
+            {id: {DK: 'FARVANDSAFSNIT_B',  GL: 'HOVEDFARVAND_DDL2', BR: null         }, before: ' - '   },
+            {id: {DK: null,                GL: 'FARVANDSAFSNIT_B',  BR: null         }, before: ' - '   },
+
+            {id: 'BREDDE',            before: '<br>', after: ' '  },
+            {id: 'LAENGDE'                              },
+            {id: 'KORT_NR',           before: ' - '               },
+            {id: 'HAVNEPLANSKORT_NR', before: ' - '               }
+        ]
+
+        *****************************************/
+        fixedContent: function(extended, $body){
+            var _this = this,
+                fixedContentTextClass     = 'd-block text-center',
+                fixedContentBoldTextClass = fixedContentTextClass + ' fw-bold',
+                hasOnClickPosition        = !!this.parent.options.onClickPosition,
+                link                      =  hasOnClickPosition ? onClickPosition    : null,
+                textData                  =  hasOnClickPosition ? {hl_location: _this} : null,
+
+                content = [];
+
+
+            //Name
+            content.push({
+                text     : this.name,
+                textClass: fixedContentBoldTextClass
+            });
+
+
+            //"Beliggenhed"
+            var idList, text = '';
+            switch (this.type){
+                case 'DK':  idList = ['HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B'  , 'KYSTAFSNIT'       ]; break;
+                case 'GL':  idList = ['LANDSDEL',           'HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B' ]; break;
+                case 'BR':  idList = ['BELIGGENHED'                                                 ]; break;
+            }
+            idList.forEach((id) => {
+                if (_this.options[id])
+                    text = text + (text ? ', ' : '') + _this.options[id];
+            });
+            content.push({
+                text     : text,
+                textClass: fixedContentTextClass
+            });
+
+            //Position
+            var posText = '';
+            if (this.options.BREDDE && this.options.LAENGDE)
+                posText = this.options.BREDDE + ' ' + this.options.LAENGDE;
+
+            //Kort
+            var mapText = '';
+            ['KORT_NR', 'HAVNEPLANSKORT_NR'].forEach((id) => {
+                if (_this.options[id])
+                    mapText = mapText + (mapText ? ' - ' : '') + _this.options[id];
+            });
+
+
+            if (extended){
+                var textArray = [];
+                if (posText) textArray.push({text: posText, link: link, textData: textData});
+                if (posText && mapText) textArray.push(' - ');
+                if (mapText) textArray.push(mapText);
+                if (textArray.length)
+                    content.push(
+                        $('<div/>')
+                            .addClass('d-flex justify-content-center')
+                            ._bsAddHtml(textArray)
+                    );
+            } else {
+                if (posText)
+                    content.push({text: posText, link: link, textData: textData, textClass: fixedContentTextClass});
+                if (mapText)
+                    content.push({text: mapText, textClass: fixedContentTextClass});
+            }
+
+            if (this.annotation)
+                content.push({
+                    text     : extended ? '<strong>Anmærkning</strong><br>' + this.annotation : {da: 'Anmærkning...'/*, en:'Annotation...'*/},
+                    textClass: (extended ? 'd-block' : fixedContentTextClass) + ' ' + this.parent.options.annotationClass
+                });
+
+
+            $body._bsAddHtml(content);
+        },
+
+
+        /*****************************************
+        extendedContent
+        *****************************************/
+        extendedContent: function(allOpen, $body){
+            $.bsAccordion( this.accordionOptions(allOpen) ).appendTo($body);
+        },
+
+        /*****************************************
+        accordionOptions
+        *****************************************/
+        accordionOptions: function(allOpen){
+            var _this         = this,
+                accordionList = [];
+
+            //Accordion list with all text
+            var first = true;
+            this.contentList().forEach((section) => {
+                accordionList.push({
+                    text   : section.header,
+                    content: section.content,
+                    open   : first
+                });
+                first = false;
+            });
+
+
+            //Add accordions with photos, plans and bridge light
+            [
+                {listId: 'photoList',    text: {da: 'Billeder'/*, en: 'Pictures'*/}, datePreText: [{da: 'Fotograferet'/*, en:'MANGLER'*/}] },
+                {listId: 'planList',     text: _this.setup.planHeader,               datePreText: [_this.setup.planHeader, {da: 'opdat.'/*, en:'MANGLER'*/}] },
+                {listId: 'brotabelList', text: {da: 'Brotabel'/*, en: 'MANGLER'*/},  datePreText: [{da: 'Brotabel opd.'/*, en:'MANGLER'*/}] }
+            ].forEach((options) => {
+                var list = _this[options.listId];
+                if (list && list.length){
+                    var carouselList = [];
+                    list.forEach((imgOpt) => {
+                        var url = ns.dataFilePath(true, _this.parent.options.subDir, _this.parent.options.images+"/") + imgOpt.fileName,
+                            subText = [...options.datePreText];
+                        if (imgOpt.date)
+                            subText.push(getDateStr(imgOpt.date));
+                        carouselList.push({
+                            //icon:
+                            url    : url,
+                            text   : imgOpt.text,
+                            subText: imgOpt.date ? subText : null
+                        });
+                    });
+                    accordionList.push({
+                        text    : options.text,
+                        content : {
+                            type           : 'carousel',
+                            list           : carouselList,
+                            innerHeight    : allOpen ? 427 : 320,   //The height of the inner-container with the items.
+                            fitHeight      : true,                  //If true and innerHeight is set: All images get max-height = innerHeight
+                            itemsMaxOwnSize: false,                 //If true, or innerHeight and fitHeight is set: Image size can be bigger that its original size
+                            defaultOnClick : true                   //If true and no itemOnClick or item.onClick: Click on image open a modal-window
+                        }
+                    });
+                }
+            });
+
+            //Add special header with source and last updated
+            var textUpdated = this.options['TEKST_OPDATERET'],
+                planUpdated = this.options['PLAN1_OPDATERET']    || this.options['PLAN_OPDATERET1'] ||
+                              this.options['BROPLAN1_OPDATERET'] || this.options['BROPLAN_OPDATERET1'],
+                content = [{
+                    icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']
+                }];
+
+            if (textUpdated || planUpdated){
+                content.push({da:'<br>Sidste opdateringer:'/*, en: 'Same as da' */});
+                if (textUpdated)
+                    content.push({da:'<br>Tekst: ' + getDateStr(textUpdated)/*, en: 'Same as da' */});
+                if (planUpdated)
+                    content.push({da:'<br>' + (this.type == 'BR' ? 'Broplan' : 'Plan') + ': ' + getDateStr(planUpdated)/*, en: 'Same as da' */});
+            }
+
+            accordionList.push({
+                text    : {da: 'Kilde'/*, en: 'Source'*/},
+                content : content
+            });
+
+            return {
+                type      : 'accordion',
+                list      : accordionList,
+                neverClose: allOpen
+            };
+        }
     };
 }(jQuery, L, this.i18next, this.moment, this, document));
 

@@ -45,10 +45,11 @@
 
             //Load and add geoJSON-data
             this.list = [];
-            ns.promiseList.append({
-                fileName: ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
-                resolve : $.proxy(this.resolve, this)
-            });
+            window.Promise.getJSON(
+                ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
+                {},
+                $.proxy(this.resolve, this)
+            );
         },
 
         /*********************************************

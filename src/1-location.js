@@ -186,10 +186,14 @@ location.js,
         getMarkerOptions: function(){
             return  $.extend(true,
                         {tooltip: this.header},
+                        this.parent.options.markerPane ? {pane      : this.parent.options.markerPane} : {},
+                        this.parent.options.shadowPane ? {shadowPane: this.parent.options.shadowPane} : {},
                         bsMarkerOptions,
                         this.markerOptions()
                     );
         },
+
+
 
         /*****************************************
         buttonGST

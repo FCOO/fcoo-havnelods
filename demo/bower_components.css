@@ -361,6 +361,11 @@ html.no-mouse-hover .hide-for-no-mouse-hover {
 	padding: 0;
 	}
 
+.leaflet-container img.leaflet-tile {
+	/* See: https://bugs.chromium.org/p/chromium/issues/detail?id=600120 */
+	mix-blend-mode: plus-lighter;
+}
+
 .leaflet-container.leaflet-touch-zoom {
 	-ms-touch-action: pan-x pan-y;
 	touch-action: pan-x pan-y;
@@ -947,7 +952,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	}
 
 /* Printing */
-	
+
 @media print {
 	/* Prevent printers from removing background-images of controls. */
 	.leaflet-control {
@@ -30615,6 +30620,9 @@ div.modal-dialog.modal-flex-width.modal-extra-width {
 div.modal-dialog.modal-flex-width.modal-mega-width {
   width: var(--jb-modal-xl-rem);
 }
+div.modal-dialog.modal-max-width {
+  width: calc(100% - 20px);
+}
 div.modal-dialog.modal-dialog-inline .modal-content {
   box-shadow: none;
   max-height: inherit;
@@ -31643,15 +31651,36 @@ CAROUSEL
   white-space: nowrap;
 }
 .carousel .carousel-caption .carousel-caption-inner .caption {
+  max-width: 100%;
+  display: flex;
+  flex-direction: row;
   font-size: var(--bs-footer-font-size);
   --bs-footer-font-size: 0.75rem;
   --bs-footer-padding-y: 0.25rem;
   --bs-footer-padding-x: 0.25rem;
 }
+.carousel .carousel-caption .carousel-caption-inner .caption span {
+  flex-shrink: 1;
+}
 .carousel .carousel-caption .carousel-caption-inner .caption.caption-sm {
   --bs-footer-font-size: 0.6875rem;
   --bs-footer-padding-y: 0.125rem;
   --bs-footer-padding-x: 0.125rem;
+}
+
+/************************************************************
+MODAL-IMAGE
+
+Style for elements used to display any image in a modal-window
+
+************************************************************/
+.c-zoom__wrapper {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 /*# sourceMappingURL=jquery-bootstrap.css.map */

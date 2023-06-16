@@ -24,9 +24,6 @@ location.js,
             tooltipHideWhenPopupOpen: true
         };
 
-
-    var modalWindow = null;
-
     var gst_footer = [
             {icon: 'fa-copyright', text: ['name:gst', '320-0088'], link: ['link:gst', 'link:gst']},
             {text: ['(','abbr:gst',')'], textClass:['me-0','me-0']}
@@ -222,24 +219,20 @@ location.js,
         showInModalWindow
         *****************************************/
         showInModalWindow: function(){
-            if (modalWindow)
-                modalWindow.remove();
+            $.bsModal({
+                header    : this.header,
+                flexWidth : true,
 
-            modalWindow = $.bsModal({
-                header      : this.header,
-                flexWidth   : true,
+                extraWidth: !useMegaWidthModal,
+                megaWidth : useMegaWidthModal,
 
-                extraWidth  : !useMegaWidthModal,
-                megaWidth   : useMegaWidthModal,
-
-
-                content     : this.accordionOptions(true),
-                footer      : gst_footer,
-                buttons     : [this.buttonGST()],
-                show        : true
+                content   : this.accordionOptions(true),
+                footer    : gst_footer,
+                buttons   : [this.buttonGST()],
+                remove    : true,
+                show      : true
             });
         },
-
 
         /*****************************************
         createMarker

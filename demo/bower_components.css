@@ -29736,6 +29736,10 @@ Bootstrap allready have the following classes
   font-size: 0.75em !important;
 }
 
+.font-size-0-9em {
+  font-size: 0.9em !important;
+}
+
 .font-size-1-1em {
   font-size: 1.1em !important;
 }
@@ -30620,8 +30624,15 @@ div.modal-dialog.modal-flex-width.modal-extra-width {
 div.modal-dialog.modal-flex-width.modal-mega-width {
   width: var(--jb-modal-xl-rem);
 }
-div.modal-dialog.modal-max-width {
+div.modal-dialog.modal-max-width:not(.modal-full-screen) {
   width: calc(100% - 20px);
+}
+div.modal-dialog.modal-full-screen {
+  width: 100%;
+}
+div.modal-dialog.modal-full-screen .modal-content {
+  border: none;
+  border-radius: 0px;
 }
 div.modal-dialog.modal-dialog-inline .modal-content {
   box-shadow: none;

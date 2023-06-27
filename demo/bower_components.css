@@ -31639,6 +31639,8 @@ CAROUSEL
   max-width: -moz-fit-content;
   max-height: fit-content;
   max-height: -moz-fit-content;
+  width: initial !important;
+  height: initial !important;
   margin: auto;
 }
 .carousel .carousel-indicators {

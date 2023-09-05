@@ -2,8 +2,6 @@
 location-Bridge.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
@@ -15,13 +13,6 @@ window.niels = 0;
     /**********************************************************************
     Location_Bridges
     Location with danish bridges
-
-    Photo = https://www.danskehavnelods.dk/foto/KOBBRYGB1.jpg
-    Plan = https://www.danskehavnelods.dk/planer/jpg_200/KOBBRYGB.jpg
-    Brolys = https://www.danskehavnelods.dk/brolys/jpg_200/tabel3.jpg
-
-
-
     **********************************************************************/
     /*
     Some of the bridges inside Copenhagen has positions a bit out of place.
@@ -49,22 +40,22 @@ window.niels = 0;
     };
 
     nsHL.Location_Bridges = function(/*options, parent*/){
-this.INDEX = 2;
         nsHL.Location.apply(this, arguments);
+        this.type = 'BR';
     };
 
     nsHL.Location_Bridges.prototype = $.extend(true, {}, nsHL.Location.prototype, {
         setup: {
-            id2OptionsId: {id: 'BRO_ID', name: 'NAME'},
-            planIndex  : 'BRO',
+            id2OptionsId: {id: 'BRO_ID', name: 'NAVN'},
+            planPrefix  : 'BRO',
+
             optionsFunc: function(options){
                 if (bridgePosition[options.BRO_ID])
                     options.latLng = L.latLng( bridgePosition[options.BRO_ID] );
             },
-            pdfUrl   : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=1&ID=<ID>&NR=2',
+            externalUrl : 'https://www.danskehavnelods.dk/#BID=<ID>',
+            planHeader  : {da:'Broplan', /*en:'MANGLER'*/}
 
-            photoUrlMask: 'https://www.danskehavnelods.dk/foto/<FILENAME>',
-            planUrlMask : 'https://www.danskehavnelods.dk/planer/jpg_200/<FILENAME>'
 
         },
 

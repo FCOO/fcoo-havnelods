@@ -2,8 +2,6 @@
 location-DK.js,
 
 ****************************************************************************/
-window.niels = 0;
-
 (function ($, L, i18next, moment, window/*, document, undefined*/) {
 	"use strict";
 
@@ -18,7 +16,7 @@ window.niels = 0;
     https://www.danskehavnelods.dk/planer/jpg_200/NKTANHOL.jpg
     **********************************************************************/
     nsHL.Location_DK = function(/*options, parent*/){
-this.INDEX = this.INDEX || 0;
+        this.type = 'DK';
         nsHL.Location.apply(this, arguments);
     };
 
@@ -28,9 +26,8 @@ this.INDEX = this.INDEX || 0;
 
             id2OptionsId: {id: 'HAVNE_ID', name: 'NAVN'},
             planIndex   : '',
-            pdfUrl      : 'https://www.danskehavnelods.dk/pdf/havnelodsenpdf.dll?WEB=1&TYP=0&ID=<ID>&NR=2',
-            photoUrlMask: 'https://www.danskehavnelods.dk/foto/<FILENAME>',
-            planUrlMask : 'https://www.danskehavnelods.dk/planer/jpg_200/<FILENAME>'
+            externalUrl : 'https://www.danskehavnelods.dk/#HID=<ID>'
+
         },
 
         /***********************************

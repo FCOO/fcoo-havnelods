@@ -66,3 +66,16 @@
     top      : -2px;
 }
 
+.hl-annotation {
+    color             : var(--bs-alert-color);
+    border            : 1px solid var(--bs-alert-border-color);
+    background-color  : var(--bs-alert-bg);
+
+
+    .modal-content.modal-extended & {
+        margin : 0px var(--jsc-scroll-padding) !important;
+    }
+}
+
+.min-width-8em  { min-width:  8em; }
+.min-width-10em { min-width: 10em; }

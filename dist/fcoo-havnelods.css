@@ -32,83 +32,106 @@ to create fa-icon looking like the marker
 *************************************************************************/
 .lbm-type-circle.lbm-color-harbor-dk {
   background-color: #7CB82F;
-  color: #000; }
-  .lbm-type-circle.lbm-color-harbor-dk.lbm-transparent {
-    background-color: rgba(124, 184, 47, 0.7); }
-    .lbm-type-circle.lbm-color-harbor-dk.lbm-transparent.lbm-hover:hover {
-      background-color: rgba(124, 184, 47, 0.9); }
-  .lbm-type-circle.lbm-color-harbor-dk.lbm-shadow, .lbm-type-circle.lbm-color-harbor-dk.leaflet-drag-target, .lbm-type-circle.lbm-color-harbor-dk.lbm-hover:hover {
-    box-shadow: 0px 0px 0px 5px rgba(124, 184, 47, 0.28); }
-  .lbm-type-circle.lbm-color-harbor-dk:before {
-    box-shadow: 0 0 6px 2px #7CB82F; }
-
+  color: #000;
+}
+.lbm-type-circle.lbm-color-harbor-dk.lbm-transparent {
+  background-color: rgba(124, 184, 47, 0.7);
+}
+.lbm-type-circle.lbm-color-harbor-dk.lbm-transparent.lbm-hover:hover {
+  background-color: rgba(124, 184, 47, 0.9);
+}
+.lbm-type-circle.lbm-color-harbor-dk.lbm-shadow, .lbm-type-circle.lbm-color-harbor-dk.leaflet-drag-target, .lbm-type-circle.lbm-color-harbor-dk.lbm-hover:hover {
+  box-shadow: 0px 0px 0px 5px rgba(124, 184, 47, 0.28);
+}
+.lbm-type-circle.lbm-color-harbor-dk:before {
+  box-shadow: 0 0 6px 2px #7CB82F;
+}
 .lbm-type-circle.lbm-border-color-harbor-dk {
-  border-color: #7CB82F; }
+  border-color: #7CB82F;
+}
 
 .fa-lbm-color-harbor-dk {
-  color: #7CB82F; }
+  color: #7CB82F;
+}
 
 .fa-lbm-border-color-harbor-dk {
-  color: #7CB82F; }
+  color: #7CB82F;
+}
 
 .lbm-type-circle.lbm-color-harbor-gl {
   background-color: #60AA14;
-  color: #000; }
-  .lbm-type-circle.lbm-color-harbor-gl.lbm-transparent {
-    background-color: rgba(96, 170, 20, 0.7); }
-    .lbm-type-circle.lbm-color-harbor-gl.lbm-transparent.lbm-hover:hover {
-      background-color: rgba(96, 170, 20, 0.9); }
-  .lbm-type-circle.lbm-color-harbor-gl.lbm-shadow, .lbm-type-circle.lbm-color-harbor-gl.leaflet-drag-target, .lbm-type-circle.lbm-color-harbor-gl.lbm-hover:hover {
-    box-shadow: 0px 0px 0px 5px rgba(96, 170, 20, 0.28); }
-  .lbm-type-circle.lbm-color-harbor-gl:before {
-    box-shadow: 0 0 6px 2px #60AA14; }
-
+  color: #000;
+}
+.lbm-type-circle.lbm-color-harbor-gl.lbm-transparent {
+  background-color: rgba(96, 170, 20, 0.7);
+}
+.lbm-type-circle.lbm-color-harbor-gl.lbm-transparent.lbm-hover:hover {
+  background-color: rgba(96, 170, 20, 0.9);
+}
+.lbm-type-circle.lbm-color-harbor-gl.lbm-shadow, .lbm-type-circle.lbm-color-harbor-gl.leaflet-drag-target, .lbm-type-circle.lbm-color-harbor-gl.lbm-hover:hover {
+  box-shadow: 0px 0px 0px 5px rgba(96, 170, 20, 0.28);
+}
+.lbm-type-circle.lbm-color-harbor-gl:before {
+  box-shadow: 0 0 6px 2px #60AA14;
+}
 .lbm-type-circle.lbm-border-color-harbor-gl {
-  border-color: #60AA14; }
+  border-color: #60AA14;
+}
 
 .fa-lbm-color-harbor-gl {
-  color: #60AA14; }
+  color: #60AA14;
+}
 
 .fa-lbm-border-color-harbor-gl {
-  color: #60AA14; }
+  color: #60AA14;
+}
 
 .port_icon_adjust {
   position: relative;
-  left: -1px; }
+  left: -1px;
+}
 
 .fa-normal-dot {
   position: relative;
-  font-size: calc(10em/10);
-  left: calc(10em/10);
-  top: calc(10em/10); }
+  font-size: 1em;
+  left: 1em;
+  top: 1em;
+}
 
 .fa-small-dot {
   position: relative;
-  font-size: .4em;
-  left: -.75em;
-  top: -.5em; }
+  font-size: 0.4em;
+  left: -0.75em;
+  top: -0.5em;
+}
 
 .fa-normal-square {
   position: relative;
   font-size: 7px;
   left: -2.5px;
-  top: -2px; }
+  top: -2px;
+}
 
 .fa-small-square {
   position: relative;
   font-size: 6px;
   left: -3px;
-  top: -2px; }
+  top: -2px;
+}
 
 .hl-annotation {
   color: var(--bs-alert-color);
   border: 1px solid var(--bs-alert-border-color);
-  background-color: var(--bs-alert-bg); }
-  .modal-content.modal-extended .hl-annotation {
-    margin: 0px var(--jsc-scroll-padding) !important; }
+  background-color: var(--bs-alert-bg);
+}
+.modal-content.modal-extended .hl-annotation {
+  margin: 0px var(--jsc-scroll-padding) !important;
+}
 
 .min-width-8em {
-  min-width: 8em; }
+  min-width: 8em;
+}
 
 .min-width-10em {
-  min-width: 10em; }
+  min-width: 10em;
+}

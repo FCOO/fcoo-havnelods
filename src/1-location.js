@@ -9,9 +9,6 @@ location.js,
     var ns = window.fcoo = window.fcoo || {},
         nsHL = ns.Havnelods = ns.Havnelods || {},
 
-
-        useMegaWidthModal = ns.modernizrDevice.isDesktop || ns.modernizrDevice.isTablet,
-
         //Common options for marker
         bsMarkerOptions = {
             size     : 'small',
@@ -219,14 +216,20 @@ location.js,
         showInModalWindow
         *****************************************/
         showInModalWindow: function(){
+console.log(ns);
             $.bsModal({
                 header    : this.header,
+
                 flexWidth : true,
+                extraWidth: true,
+                content   : this.accordionOptions(),
+                extended: {
+                    flexWidth: true,
+                    megaWidth: true,
+                    content  : this.accordionOptions(true)
+                },
+                isExtended: true,   //MANGLER
 
-                extraWidth: !useMegaWidthModal,
-                megaWidth : useMegaWidthModal,
-
-                content   : this.accordionOptions(true),
                 footer    : gst_footer,
                 buttons   : [this.buttonGST()],
                 remove    : true,
@@ -342,7 +345,6 @@ location.js,
 
                 content = [];
 
-
             //Name
             content.push({
                 text     : this.name,
@@ -402,7 +404,6 @@ location.js,
                     text     : extended ? '<strong>Anmærkning</strong><br>' + this.annotation : {da: 'Anmærkning...'/*, en:'Annotation...'*/},
                     textClass: (extended ? 'd-block' : fixedContentTextClass) + ' ' + this.parent.options.annotationClass
                 });
-
 
             $body._bsAddHtml(content);
         },

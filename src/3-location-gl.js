@@ -80,6 +80,14 @@ location-GL.js,
             });
 
             return options;
+        },
+
+        /***********************************
+        filter
+        ***********************************/
+        filter: function( filterValue ){
+            filterValue = filterValue ? filterValue.split('_')[1] : '0'; //filterValue = 'cat_N' => 'N'
+            return ''+this.options.HAVNEKATEGORI == filterValue;
         }
     });
 

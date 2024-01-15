@@ -119,13 +119,31 @@ to create fa-icon looking like the marker
   top: -2px;
 }
 
-.hl-annotation {
+.hl-annotation-colors {
   color: var(--bs-alert-color);
-  border: 1px solid var(--bs-alert-border-color);
   background-color: var(--bs-alert-bg);
+}
+
+.hl-annotation {
+  border: 1px solid var(--bs-alert-border-color);
 }
 .modal-content.modal-extended .hl-annotation {
   margin: 0px var(--jsc-scroll-padding) !important;
 }
 
-/*# sourceMappingURL=fcoo-havnelods.css.map */
+.location-group {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.location-group > * {
+  white-space: normal;
+  text-align: center;
+}
+.location-group > *:not(:last-child) {
+  margin-right: 1em !important;
+}
+
+td.annotation {
+  background-color: var(--bs-alert-bg);
+}

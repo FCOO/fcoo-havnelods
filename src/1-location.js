@@ -50,15 +50,15 @@ location.js,
     /***********************************************************************************************
     Location
     General object for all types of locations = Danish harbors, danish bridges, Greenlandic places
-
-    parent = geoJSON-layer with options containing
     ***********************************************************************************************/
-    nsHL.Location = function(options, parent){
+    nsHL.Location = function(options = {}, parent){
         var _this = this;
         this.options = options;
         this.parent = parent;
         this.colorName = this.setup.colorName || 'blue';
 
+        //Add content 'MAP' to all Locations
+        this.options.MAP = true;
 
         //Convert all "0" and "-1" to false and true and replace "\r\n" with "<br>"
         $.each(options, function(id, value){
@@ -131,7 +131,6 @@ location.js,
         //Get annotation
         this.annotation = parent.options.annotationId ? options[parent.options.annotationId] : null;
 
-
         //Create photoList = []{fileName, text, date, photographer}
         this.photoList = getImageList('FOTO', 'FOTOTEKST', 'UNKNOWN', 'OPR', '', 'FOTOGRAFNAVN');
 
@@ -177,9 +176,9 @@ location.js,
         /*********************************************
         getMarkerOptions
         *********************************************/
-        getMarkerOptions: function(){
+        getMarkerOptions: function(options = {}){
             return  $.extend(true,
-                        {tooltip: this.header},
+                        options.noTooltip ? {} : {tooltip: this.header},
                         this.parent.options.markerPane ? {pane      : this.parent.options.markerPane} : {},
                         this.parent.options.shadowPane ? {shadowPane: this.parent.options.shadowPane} : {},
                         bsMarkerOptions,
@@ -187,22 +186,91 @@ location.js,
                     );
         },
 
+        /***********************************
+        asTableRow
+        ***********************************/
+        asTableRow: function(){
+            return {
+                id         : this.id,
+                name       : this.name,
+                location   : this.locationText(),
+                chart      : this.options.KORT_NR || '',
+                annotation : this.annotation ? {icon:'far fa-circle-exclamation', className: 'alert-info annotation'} : '',
+                centerOnMap: {type:'button', icon:'fa-map-location-dot', fullWidth: true, fullHeight: true, square: true, noBorder: true, onClick: this.centerOnMap.bind(this) }
+            };
+        },
 
+
+        /***********************************
+        asSmallTableRow
+        ***********************************/
+        asSmallTableRow: function(){
+            return {
+                id          : this.id,
+                name        : '<span class="fw-bold">'+ this.name + '</span><br>' + this.locationText(),
+                annotation  : this.annotation ? {text:' ', className: 'alert-info annotation'} : ''
+            };
+        },
+
+
+        /*****************************************
+        buttonShow
+        *****************************************/
+        buttonShow: function(){
+            return {
+                id     : 'window_show'+this.id,
+                icon   : 'fa-window-maximize',
+                text   : {da: 'Vis', en:'Show'},
+                class  : 'min-width-5em',
+                onClick: this.asModal.bind(this)
+            };
+        },
 
         /*****************************************
         buttonGST
         *****************************************/
-        buttonGST: function(){
+        buttonGST: function(small){
             if (this.setup.externalUrl)
                 return {
                     id     :'dhl_show'+this.id,
                     icon   : 'far fa-link',
-                    text   : ['abbr:gst', {da: 'off. version', en:'Off. Version'}],
-                    class : 'min-width-8em',
+                    text   : ['abbr:gst', small ? {da: 'ver.', en:'ver.'} : {da: ' version', en:' Version'}],
+                    class  : small ? 'min-width-5em' : 'min-width-8em',
                     onClick: this.showGST.bind(this)
                 };
             else
                 return null;
+        },
+
+        /*****************************************
+        centerOnMap
+        *****************************************/
+        centerOnMap: function(){
+            if (this.bsModal)
+                this.bsModal.close();
+
+            if (this.parent.bsModal)
+                this.parent.bsModal.close();
+
+            var map = this.parent.getMap();
+
+            if (!map) return;
+
+            //Call onCenterOnMap from generel options or from this' messages or from this onCenterOnMap = function(message, map)
+            [   this.options        ? this.options.onCenterOnMap        : null,
+                this.parent.options ? this.parent.options.onCenterOnMap : null,
+                nsHL.options        ? nsHL.options.onCenterOnMap        : null
+            ].forEach( eventFunc => {
+                if (eventFunc)
+                    eventFunc.apply(this, [this, map]);
+            }, this);
+
+
+            map.setView(this.latLng, map.getZoom(), {animate: false, reset: true});
+
+            var marker = this.getMarker(map);
+            if (marker)
+                marker.openPopup();
         },
 
         /*****************************************
@@ -213,83 +281,131 @@ location.js,
         },
 
         /*****************************************
-        showInModalWindow
+        asModal
         *****************************************/
-        showInModalWindow: function(){
-console.log(ns);
-            $.bsModal({
-                header    : this.header,
+        asModal: function(id, latlng, element, map){
+            var locationGroup = this.parent,
+                historyList = locationGroup.historyList = locationGroup.historyList ||
+                    new window.HistoryList({
+                        action: function( id ){
+                            var location = locationGroup.getLocation(id);
+                            location.asModal();
+                        }
+                    });
 
-                flexWidth : true,
-                extraWidth: true,
-                content   : this.accordionOptions(),
-                extended: {
-                    flexWidth: true,
-                    megaWidth: true,
-                    content  : this.accordionOptions(true)
-                },
-                isExtended: true,   //MANGLER
+            historyList.callAction = false;
+            historyList.add( this.id );
+            historyList._callOnUpdate();
 
-                footer    : gst_footer,
-                buttons   : [this.buttonGST()],
-                remove    : true,
-                show      : true
-            });
+            var options = {
+                    header    : this.header,
+
+                    flexWidth : true,
+                    extraWidth: true,
+
+                    historyList: historyList,
+
+                    fixedContent: this.fixedContent.bind(this),
+                    content     : this.accordionOptions({modalWidth:800, map:'small', multiOpen: true}),
+                    extended: {
+                        flexWidth   : true,
+                        megaWidth   : true,
+                        fixedContent: this.fixedContent.bind(this),
+                        content     : this.accordionOptions({modalWidth:1200, map:'large', allOpen: true})
+                    },
+                    isExtended: nsHL.options.modalIsExtended,
+
+                    footer    : gst_footer,
+                    buttons   : [this.buttonGST(false), locationGroup.buttonShowAll(false)],
+
+                    static    : false,
+                    show      : true
+                };
+
+            //Create or update bsModal
+            locationGroup.bsModalLocation =
+                locationGroup.bsModalLocation ?
+                locationGroup.bsModalLocation.update(options) :
+                $.bsModal( options );
+
+
+            //Find last button = "Show all"
+            if (!locationGroup.showMessagesButton){
+                var buttons = locationGroup.bsModalLocation.bsModal.$buttons;
+                locationGroup.showMessagesButton = buttons[buttons.length-1];
+            }
+
+            //Hide the "Show all"-button if messages-list is already visible
+            locationGroup.showMessagesButton.toggle(
+                !(locationGroup.bsModal && locationGroup.bsModal.hasClass('show'))
+            );
+
+            locationGroup.getMap( map );
+            locationGroup.bsModalLocation.show();
+
         },
 
         /*****************************************
         createMarker
         *****************************************/
-        createMarker: function(){
-            var this_showInModalWindow = this.showInModalWindow.bind(this);
-            return L.bsMarkerCircle( this.latLng, this.getMarkerOptions() )
+        createMarker: function(options = {}){
+            var extendedWidth = 320;
 
-                        .bindPopup({
-//HER                            flexWidth: true,
-                            fixable : true,
+            var marker = L.bsMarkerCircle( this.latLng, this.getMarkerOptions(options) );
 
-                            //noVerticalPadding  :  true,
-                            //noHorizontalPadding: true,
+            if (!options.noPopup)
+                marker.bindPopup({
+                    fixable     : true,
+                    onNew       : this.asModal.bind(this),
+                    header      : this.header,
 
-                            onNew  : this_showInModalWindow,
-                            header : this.header,
+                    maxHeight   : 260,
+                    width       : 260,
+                    clickable   : true,
 
-                            maxHeight: 260,
-                            width    : 260,
-                            clickable: true,
+                    fixedContent: this.fixedContent.bind(this),
+                    content     : null,
+                    extended    : {
+                        maxHeight   : 375,
+                        width       : extendedWidth,
+                        clickable   : false,
+                        scroll      : true,
+                        fixedContent: this.fixedContent.bind(this),
+                        content     : this.extendedContent.bind(this, {modalWidth: extendedWidth, map: false}),
+                        footer      : true
+                    },
 
-                            fixedContent: this.fixedContent.bind(this, false),
+                    onOpen        : function(popup){ this.currentMap = popup._map; },
+                    onOpenContext : this.parent,
+                    onClose       : function(){ this.currentMap = null; },
+                    onCloseContext: this.parent,
 
-                            content     : null,
+                    buttons:[
+                        this.buttonShow(true),
+                        this.buttonGST(true),
+                        this.parent.buttonShowAll(true)
+                    ],
+                    footer: gst_footer
+                });
 
-                            extended: {
-                                maxHeight   : 600,
-                                width       : 511,  //Allows pictures to be 3/4 * 427
-                                clickable   : false,
-                                scroll      : true,
-                                fixedContent: this.fixedContent.bind(this, true),
 
-                                //content     : this.extendedContent(),
-                                content     : this.extendedContent.bind(this, false ),
-
-                                footer      : true
-                            },
-
-                            buttons:[
-                                {
-                                    id     :'window_show'+this.id,
-                                    icon   : 'fal fa-window-maximize',
-                                    text   : {da: 'Vis mere', en:'Show more'},
-                                    class  : 'min-width-8em',
-                                    onClick: this_showInModalWindow
-                                },
-                                this.buttonGST()
-                            ],
-                            footer: gst_footer
-                        });
+            return marker;
 
         },
 
+        /*****************************************
+        getMarker
+        *****************************************/
+        getMarker: function(map){
+            var result;
+            map.eachLayer( (item) => {
+                if (item.feature && (item.feature.properties === this)){
+                    result = item;
+                    return true;
+                }
+            }, this);
+            return result;
+        },
 
         /*****************************************
         contentList
@@ -304,22 +420,53 @@ console.log(ns);
                     var sectionContent = section.content(type, this.options);
                     if (sectionContent)
                         result.push({
+                            id      : section.list[0].id,
                             header  : section.header,
                             content : sectionContent,
+                            class   : section.class || ''
                         });
                 }
+            });
+
+            return result;
+        },
+
+        /*****************************************
+        locationText
+        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B - Position - KORT_NR
+        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B  - Position - KORT_NR
+        Bridges DK: BELIGGENHED<br>Position - KORT_NR
+        content : [
+            {id: {DK: 'HOVEDFARVAND_DDL2', GL: 'LANDSDEL',          BR: 'BELIGGENHED'}                  },
+            {id: {DK: 'FARVANDSAFSNIT_B',  GL: 'HOVEDFARVAND_DDL2', BR: null         }, before: ' - '   },
+            {id: {DK: null,                GL: 'FARVANDSAFSNIT_B',  BR: null         }, before: ' - '   },
+        *****************************************/
+        locationText: function(){
+            var _this = this,
+                idList,
+                result = '';
+            switch (this.type){
+                case 'DK':  idList = ['HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B'  , 'KYSTAFSNIT'       ]; break;
+                case 'GL':  idList = ['LANDSDEL',           'HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B' ]; break;
+                case 'BR':  idList = ['BELIGGENHED'                                                 ]; break;
+            }
+            idList.forEach((id) => {
+                if (_this.options[id])
+                    result = result + (result ? ', ' : '') + _this.options[id];
             });
             return result;
         },
 
-
-
        /*****************************************
         fixedContent
 
-        Beliggenhed
-        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
-        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
+        Create the content for the fixed part of popups and modal.
+        Contains of tree parts:
+        1. Name
+
+        2. Location ("Beliggenhed")
+        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B - Position - KORT_NR
+        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B  - Position - KORT_NR
         Bridges DK: BELIGGENHED<br>Position - KORT_NR
 
         header  : {da:'Beliggenhed'},
@@ -334,8 +481,9 @@ console.log(ns);
             {id: 'HAVNEPLANSKORT_NR', before: ' - '               }
         ]
 
+        3. Annotation ("Bemærkning...")
         *****************************************/
-        fixedContent: function(extended, $body){
+        fixedContent: function($body){
             var _this = this,
                 fixedContentTextClass     = 'd-block text-center',
                 fixedContentBoldTextClass = fixedContentTextClass + ' fw-bold',
@@ -345,95 +493,192 @@ console.log(ns);
 
                 content = [];
 
-            //Name
+            //1. Name
             content.push({
                 text     : this.name,
                 textClass: fixedContentBoldTextClass
             });
 
 
-            //"Beliggenhed"
-            var idList, text = '';
-            switch (this.type){
-                case 'DK':  idList = ['HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B'  , 'KYSTAFSNIT'       ]; break;
-                case 'GL':  idList = ['LANDSDEL',           'HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B' ]; break;
-                case 'BR':  idList = ['BELIGGENHED'                                                 ]; break;
-            }
-            idList.forEach((id) => {
-                if (_this.options[id])
-                    text = text + (text ? ', ' : '') + _this.options[id];
-            });
-            content.push({
-                text     : text,
-                textClass: fixedContentTextClass
-            });
+            //2. Location ("Beliggenhed") = 2.A=Text, 2.B=Position, 2.C=Map
+            var locationContent = [];
 
-            //Position
+            //2.A=Text
+            locationContent.push({text: {da: this.locationText()}});
+
+            //2.B=Position
             var posText = '';
-            if (this.options.BREDDE && this.options.LAENGDE)
+            if (this.options.BREDDE && this.options.LAENGDE){
                 posText = this.options.BREDDE + ' ' + this.options.LAENGDE;
+                locationContent.push({text: posText, link: link, textData: textData, textClass: fixedContentTextClass});
+            }
 
-            //Kort
+
+            //2.C=Map
             var mapText = '';
             ['KORT_NR', 'HAVNEPLANSKORT_NR'].forEach((id) => {
                 if (_this.options[id])
                     mapText = mapText + (mapText ? ' - ' : '') + _this.options[id];
             });
+            if (mapText)
+                locationContent.push({text: {da:mapText}});
 
+            //Create <div> with flex-display holding the elements in locationContent
+            content.push(
+                $('<div/>')
+                    .addClass('location-group d-flex justify-content-center')
+                    ._bsAddHtml(locationContent)
+            );
 
-            if (extended){
-                var textArray = [];
-                if (posText) textArray.push({text: posText, link: link, textData: textData});
-                if (posText && mapText) textArray.push(' - ');
-                if (mapText) textArray.push(mapText);
-                if (textArray.length)
-                    content.push(
-                        $('<div/>')
-                            .addClass('d-flex justify-content-center')
-                            ._bsAddHtml(textArray)
-                    );
-            } else {
-                if (posText)
-                    content.push({text: posText, link: link, textData: textData, textClass: fixedContentTextClass});
-                if (mapText)
-                    content.push({text: mapText, textClass: fixedContentTextClass});
-            }
-
+            //3. Annotation ("Bemærkning...")
             if (this.annotation)
                 content.push({
-                    text     : extended ? '<strong>Anmærkning</strong><br>' + this.annotation : {da: 'Anmærkning...'/*, en:'Annotation...'*/},
-                    textClass: (extended ? 'd-block' : fixedContentTextClass) + ' ' + this.parent.options.annotationClass
+                    text     : {da: 'Anmærkning...'},
+                    textClass: fixedContentTextClass + ' ' + this.parent.options.annotationClass
                 });
 
+
             $body._bsAddHtml(content);
+            return $body;
         },
 
 
         /*****************************************
         extendedContent
         *****************************************/
-        extendedContent: function(allOpen, $body){
-            $.bsAccordion( this.accordionOptions(allOpen) ).appendTo($body);
+        extendedContent: function(options, $body){
+            $.bsAccordion( this.accordionOptions(options) ).appendTo($body);
         },
+
+
+        /*****************************************
+        createMap
+        *****************************************/
+        createMap: function($element, accOptions){
+            var largeMap = accOptions.map == 'large',
+                $inner   = $('<div/>').appendTo($element),
+                $map     = $('<div/>')
+                               .css({
+                                   height: largeMap ? '500px' : '300px',
+                                   width:'100%'
+                               })
+                              .appendTo($inner),
+                map = L.map($map.get(0), nsHL.options.leaflet.mapOptions);
+
+            L.tileLayer(
+                nsHL.options.leaflet.tileUrl,
+                {attribution: nsHL.options.leaflet.attribution || ''}
+            ).addTo(map);
+
+            map.setView(this.latLng, map.getZoom(), {animate: false, reset: true});
+
+            //Create marker by creaating geoJOSN-layer with only one marker
+            var geoJSON = this.parent.getGeoJSON({
+                    onlyLocationId: this.id,
+                    geoJSON: {
+                        onEachFeature: null,
+                        markerOptions: {
+                            noTooltip: true,
+                            noPopup  : true
+                        }
+                    }
+                });
+            geoJSON.addTo(map);
+
+
+            //Add button on map to center on geoJSON-elements
+            map.addControl(
+                L.control.bsButton({
+                    position: 'topcenter',
+                    icon    : 'fa-expand',
+                    onClick : this._maps_center.bind(this),
+                    context : this
+                })
+            );
+
+
+
+            //Save the map in the Location and sync the maps in different modal-modes
+            this.maps = this.maps || {};
+            this.maps[map._leaflet_id] = map;
+            map.on('moveend zoomend', this._maps_update_center_and_zoom.bind(this) );
+
+
+
+            //Resize the map and set view to geoJSON-objects when the outer element is resized
+            $element.resize( function(){
+                map.invalidateSize();
+
+
+            });
+        },
+
+        /*****************************************
+        _maps_center
+        *****************************************/
+        _maps_center: function(){
+            var latlng = this.latLng;
+            this.mapCenter = latlng;
+
+            $.each( this.maps, (id, map) => {
+                map.setView(latlng, nsHL.options.leaflet.mapOptions.zoom, {animate: false, reset: true});
+            });
+
+        },
+
+        /*****************************************
+        _maps_update_center_and_zoom
+        *****************************************/
+        _maps_update_center_and_zoom: function(event){
+            if (this.doNotUpdate) return;
+            this.doNotUpdate = true;
+            var _this = this,
+                mapId = event.target._leaflet_id,
+                map   = this.maps[mapId];
+
+            this.mapCenter = map.getCenter();
+            this.mapZoom   = map.getZoom();
+            $.each( this.maps, (id, map) => {
+                if (map._leaflet_id != mapId)
+                    map.setView(_this.mapCenter, _this.mapZoom, {animate: false, reset: true});
+            }, this);
+            this.doNotUpdate = false;
+        },
+
+
 
         /*****************************************
         accordionOptions
         *****************************************/
-        accordionOptions: function(allOpen){
+        accordionOptions: function(accOptions = {}){
             var _this         = this,
-                accordionList = [];
+                accordionList = [],
+                modalWidth    = accOptions.modalWidth || 400,
+                inclMap       = !!accOptions.map;
 
             //Accordion list with all text
             var first = true;
             this.contentList().forEach((section) => {
-                accordionList.push({
-                    text   : section.header,
-                    content: section.content,
-                    open   : first
-                });
-                first = false;
-            });
+                var sectionContent = section.content;
+                if (section.id == 'MAP')
+                    //Bug fix to pass accOptions to the map-creator
+                    sectionContent = function(sectionContent){
+                        return function($elem){
+                            sectionContent.apply(this, [$elem, accOptions]);
+                        };
+                    }(sectionContent);
 
+                if ((section.id != 'MAP') || inclMap){
+                    accordionList.push({
+                        text          : section.header,
+                        content       : sectionContent,
+                        contentContext: this,
+                        isOpen        : first,
+                        className     : section.class
+                    });
+                    first = false;
+                }
+            });
 
             //Add accordions with photos, plans and bridge light
             [
@@ -461,10 +706,10 @@ console.log(ns);
                         content : {
                             type           : 'carousel',
                             list           : carouselList,
-                            innerHeight    : allOpen ? 427 : 320,   //The height of the inner-container with the items.
-                            fitHeight      : true,                  //If true and innerHeight is set: All images get max-height = innerHeight
-                            itemsMaxOwnSize: false,                 //If true, or innerHeight and fitHeight is set: Image size can be bigger that its original size
-                            defaultOnClick : true                   //If true and no itemOnClick or item.onClick: Click on image open a modal-window
+                            innerHeight    : Math.min(430, (modalWidth - 35)*1/1.5),   //The height of the inner-container with the items. Fits landscape-mode within given modal-width
+                            fitHeight      : true,  //If true and innerHeight is set: All images get max-height = innerHeight
+                            itemsMaxOwnSize: false, //If true, or innerHeight and fitHeight is set: Image size can be bigger that its original size
+                            defaultOnClick : true   //If true and no itemOnClick or item.onClick: Click on image open a modal-window
                         }
                     });
                 }
@@ -494,10 +739,16 @@ console.log(ns);
             return {
                 type      : 'accordion',
                 list      : accordionList,
-                neverClose: allOpen
+                neverClose: accOptions.allOpen,
+                multiOpen : accOptions.multiOpen,
             };
         }
     };
+
+    //Extend Havnelods.Location to include contextmenu
+    $.extend(nsHL.Location.prototype, L.BsContextmenu.contextmenuInclude);
+
+
 }(jQuery, L, this.i18next, this.moment, this, document));
 
 

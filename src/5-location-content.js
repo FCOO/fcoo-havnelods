@@ -10,6 +10,23 @@ Setup to create content for different classes of Locations
         nsHL = ns.Havnelods = ns.Havnelods || {};
 
 
+    nsHL.HAVNEKATEGORI2text = function( havnekategori ){
+        switch (''+havnekategori){
+            case '1': return {da: 'By'     , en: 'Town'   };
+            case '2': return {da: 'Bygd'   , en: 'Hamlet' };
+            case '3': return {da: 'Station', en: 'Station'};
+        }
+        return {da:'', en:''};
+    };
+
+    nsHL.HAVNEKATEGORI2text_plural = function( havnekategori ){
+        switch (''+havnekategori){
+            case '1': return {da: 'Byer'     , en: 'Towns'   };
+            case '2': return {da: 'Bygder'   , en: 'Hamlets' };
+            case '3': return {da: 'Stationer', en: 'Stations'};
+        }
+        return {da:'', en:''};
+    };
     /***********************************************************************************************
     contentList is a list of sections. each section contains a header and a list of ids and options
     for the data given the section
@@ -25,7 +42,8 @@ Setup to create content for different classes of Locations
         around: [STRING, STRING]
         before: STRING  - only if there is an element before
         after : STRING  - only if there is an element after
-        format: function( content ) return formatted string
+        format: function( content ) return formatted string or $-element
+        falseAsZero: BOOLEAN. If true value == false is treated as value == 0
     }
 
     ***********************************************************************************************/
@@ -75,10 +93,19 @@ Setup to create content for different classes of Locations
                 var id = element.id || null,
                     value = id ? hlOptions[element.id] : undefined;
 
-                if ((value === undefined) || (value === false))
+                if ((value === undefined) || ((value === false) && !element.falseAsZero))
                     return;
 
-                value = element.format ? element.format(value) : value;
+                //Special version with create-function
+                if (element.create){
+                    result = element.create;
+                    return true;
+                }
+
+                value = element.format ?
+                        element.format(value, this) :
+                            ((value === false) && element.falseAsZero) ? 0 :
+                            value;
 
                 if (after)
                     result = result + after;
@@ -104,33 +131,42 @@ Setup to create content for different classes of Locations
             if (result && this.after)
                 result = result + this.after;
 
-            result = result.replaceAll('\n', '<br>');
+            if (typeof result == 'string')
+                result = result.replaceAll('\n', '<br>');
 
             return result;
         }
     };
 
-    function HAVNEKATEGORI2text( havnekategori ){
-        switch (''+havnekategori){
-            case '1': return 'By';      //Town,
-            case '2': return 'Bygd';    //Hamlet
-            case '3': return 'Station'; //Station
-        }
-        return '';
-    }
-
     nsHL.contentList = [{
+        //SECTION for the map
+        header : {da: 'Kort', en:'Map'},
+        content: [{
+            id    : 'MAP',
+            create: function($elem, options){
+                this.createMap($elem, options);
+            }
+        }]
+    },{
         /*
         Befolkning - only for Harbor-GL
         */
         header  : {da:'Befolkning'},
         onlyType: 'GL',
         content: [
-            {id: 'HAVNEKATEGORI',          after : '<br>', format: HAVNEKATEGORI2text},
-            {id: 'INDBYGGERANTAL',         after : ' indbyggere'},
+            {id: 'HAVNEKATEGORI',          after : '<br>', format: function (havnekategori){ return nsHL.HAVNEKATEGORI2text(havnekategori).da;} },
+            {id: 'INDBYGGERANTAL',         after : ' indbyggere', falseAsZero: true},
             {id: 'INDBYGGERANTAL_AARSTAL', around: [' (',')']}
         ]
     }];
+
+    //Add SECTION for Annotation (Anmærkning)
+    nsHL.contentList.push({
+        header : {da: 'Anmærkning'},
+        content: 'ANMERKNING',
+        class  : 'hl-annotation-colors alert-info',
+    });
+
 
     //Add simple SECTION for no-bridge
     var list = [
@@ -150,7 +186,6 @@ Setup to create content for different classes of Locations
         'Afmærkning'              , 'AFMAERK',
         'Erhverv'                 , 'ERHVERV',
         'Forsyning'               , 'FORSYNING',
-        'Ankerplads'              , 'ANKERPL',
         'Redningsstation'         , 'REDNINGSSTATION',
         'Båker'                   , 'BAAKER',
         'Fyr'                     , 'FYR',

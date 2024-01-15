@@ -88,7 +88,17 @@ location-DK.js,
             });
 
             return options;
+        },
+
+        /***********************************
+        filter
+        options.ERHVERVSHAVN : BOOLEAN
+        options.LYSTBAADEHAVN: BOOLEAN
+        ***********************************/
+        filter: function(filterValue){
+            return this.options[filterValue];
         }
+
     });
 
 

@@ -9,9 +9,6 @@ location.js,
     var ns = window.fcoo = window.fcoo || {},
         nsHL = ns.Havnelods = ns.Havnelods || {},
 
-
-        useMegaWidthModal = ns.modernizrDevice.isDesktop || ns.modernizrDevice.isTablet,
-
         //Common options for marker
         bsMarkerOptions = {
             size     : 'small',
@@ -53,15 +50,15 @@ location.js,
     /***********************************************************************************************
     Location
     General object for all types of locations = Danish harbors, danish bridges, Greenlandic places
-
-    parent = geoJSON-layer with options containing
     ***********************************************************************************************/
-    nsHL.Location = function(options, parent){
+    nsHL.Location = function(options = {}, parent){
         var _this = this;
         this.options = options;
         this.parent = parent;
         this.colorName = this.setup.colorName || 'blue';
 
+        //Add content 'MAP' to all Locations
+        this.options.MAP = true;
 
         //Convert all "0" and "-1" to false and true and replace "\r\n" with "<br>"
         $.each(options, function(id, value){
@@ -134,7 +131,6 @@ location.js,
         //Get annotation
         this.annotation = parent.options.annotationId ? options[parent.options.annotationId] : null;
 
-
         //Create photoList = []{fileName, text, date, photographer}
         this.photoList = getImageList('FOTO', 'FOTOTEKST', 'UNKNOWN', 'OPR', '', 'FOTOGRAFNAVN');
 
@@ -180,9 +176,9 @@ location.js,
         /*********************************************
         getMarkerOptions
         *********************************************/
-        getMarkerOptions: function(){
+        getMarkerOptions: function(options = {}){
             return  $.extend(true,
-                        {tooltip: this.header},
+                        options.noTooltip ? {} : {tooltip: this.header},
                         this.parent.options.markerPane ? {pane      : this.parent.options.markerPane} : {},
                         this.parent.options.shadowPane ? {shadowPane: this.parent.options.shadowPane} : {},
                         bsMarkerOptions,
@@ -190,22 +186,91 @@ location.js,
                     );
         },
 
+        /***********************************
+        asTableRow
+        ***********************************/
+        asTableRow: function(){
+            return {
+                id         : this.id,
+                name       : this.name,
+                location   : this.locationText(),
+                chart      : this.options.KORT_NR || '',
+                annotation : this.annotation ? {icon:'far fa-circle-exclamation', className: 'alert-info annotation'} : '',
+                centerOnMap: {type:'button', icon:'fa-map-location-dot', fullWidth: true, fullHeight: true, square: true, noBorder: true, onClick: this.centerOnMap.bind(this) }
+            };
+        },
 
+
+        /***********************************
+        asSmallTableRow
+        ***********************************/
+        asSmallTableRow: function(){
+            return {
+                id          : this.id,
+                name        : '<span class="fw-bold">'+ this.name + '</span><br>' + this.locationText(),
+                annotation  : this.annotation ? {text:' ', className: 'alert-info annotation'} : ''
+            };
+        },
+
+
+        /*****************************************
+        buttonShow
+        *****************************************/
+        buttonShow: function(){
+            return {
+                id     : 'window_show'+this.id,
+                icon   : 'fa-window-maximize',
+                text   : {da: 'Vis', en:'Show'},
+                class  : 'min-width-5em',
+                onClick: this.asModal.bind(this)
+            };
+        },
 
         /*****************************************
         buttonGST
         *****************************************/
-        buttonGST: function(){
+        buttonGST: function(small){
             if (this.setup.externalUrl)
                 return {
                     id     :'dhl_show'+this.id,
                     icon   : 'far fa-link',
-                    text   : ['abbr:gst', {da: 'off. version', en:'Off. Version'}],
-                    class : 'min-width-8em',
+                    text   : ['abbr:gst', small ? {da: 'ver.', en:'ver.'} : {da: ' version', en:' Version'}],
+                    class  : small ? 'min-width-5em' : 'min-width-8em',
                     onClick: this.showGST.bind(this)
                 };
             else
                 return null;
+        },
+
+        /*****************************************
+        centerOnMap
+        *****************************************/
+        centerOnMap: function(){
+            if (this.bsModal)
+                this.bsModal.close();
+
+            if (this.parent.bsModal)
+                this.parent.bsModal.close();
+
+            var map = this.parent.getMap();
+
+            if (!map) return;
+
+            //Call onCenterOnMap from generel options or from this' messages or from this onCenterOnMap = function(message, map)
+            [   this.options        ? this.options.onCenterOnMap        : null,
+                this.parent.options ? this.parent.options.onCenterOnMap : null,
+                nsHL.options        ? nsHL.options.onCenterOnMap        : null
+            ].forEach( eventFunc => {
+                if (eventFunc)
+                    eventFunc.apply(this, [this, map]);
+            }, this);
+
+
+            map.setView(this.latLng, map.getZoom(), {animate: false, reset: true});
+
+            var marker = this.getMarker(map);
+            if (marker)
+                marker.openPopup();
         },
 
         /*****************************************
@@ -216,77 +281,131 @@ location.js,
         },
 
         /*****************************************
-        showInModalWindow
+        asModal
         *****************************************/
-        showInModalWindow: function(){
-            $.bsModal({
-                header    : this.header,
-                flexWidth : true,
+        asModal: function(id, latlng, element, map){
+            var locationGroup = this.parent,
+                historyList = locationGroup.historyList = locationGroup.historyList ||
+                    new window.HistoryList({
+                        action: function( id ){
+                            var location = locationGroup.getLocation(id);
+                            location.asModal();
+                        }
+                    });
 
-                extraWidth: !useMegaWidthModal,
-                megaWidth : useMegaWidthModal,
+            historyList.callAction = false;
+            historyList.add( this.id );
+            historyList._callOnUpdate();
 
-                content   : this.accordionOptions(true),
-                footer    : gst_footer,
-                buttons   : [this.buttonGST()],
-                remove    : true,
-                show      : true
-            });
+            var options = {
+                    header    : this.header,
+
+                    flexWidth : true,
+                    extraWidth: true,
+
+                    historyList: historyList,
+
+                    fixedContent: this.fixedContent.bind(this),
+                    content     : this.accordionOptions({modalWidth:800, map:'small', multiOpen: true}),
+                    extended: {
+                        flexWidth   : true,
+                        megaWidth   : true,
+                        fixedContent: this.fixedContent.bind(this),
+                        content     : this.accordionOptions({modalWidth:1200, map:'large', allOpen: true})
+                    },
+                    isExtended: nsHL.options.modalIsExtended,
+
+                    footer    : gst_footer,
+                    buttons   : [this.buttonGST(false), locationGroup.buttonShowAll(false)],
+
+                    static    : false,
+                    show      : true
+                };
+
+            //Create or update bsModal
+            locationGroup.bsModalLocation =
+                locationGroup.bsModalLocation ?
+                locationGroup.bsModalLocation.update(options) :
+                $.bsModal( options );
+
+
+            //Find last button = "Show all"
+            if (!locationGroup.showMessagesButton){
+                var buttons = locationGroup.bsModalLocation.bsModal.$buttons;
+                locationGroup.showMessagesButton = buttons[buttons.length-1];
+            }
+
+            //Hide the "Show all"-button if messages-list is already visible
+            locationGroup.showMessagesButton.toggle(
+                !(locationGroup.bsModal && locationGroup.bsModal.hasClass('show'))
+            );
+
+            locationGroup.getMap( map );
+            locationGroup.bsModalLocation.show();
+
         },
 
         /*****************************************
         createMarker
         *****************************************/
-        createMarker: function(){
-            var this_showInModalWindow = this.showInModalWindow.bind(this);
-            return L.bsMarkerCircle( this.latLng, this.getMarkerOptions() )
+        createMarker: function(options = {}){
+            var extendedWidth = 320;
 
-                        .bindPopup({
-//HER                            flexWidth: true,
-                            fixable : true,
+            var marker = L.bsMarkerCircle( this.latLng, this.getMarkerOptions(options) );
 
-                            //noVerticalPadding  :  true,
-                            //noHorizontalPadding: true,
+            if (!options.noPopup)
+                marker.bindPopup({
+                    fixable     : true,
+                    onNew       : this.asModal.bind(this),
+                    header      : this.header,
 
-                            onNew  : this_showInModalWindow,
-                            header : this.header,
+                    maxHeight   : 260,
+                    width       : 260,
+                    clickable   : true,
 
-                            maxHeight: 260,
-                            width    : 260,
-                            clickable: true,
+                    fixedContent: this.fixedContent.bind(this),
+                    content     : null,
+                    extended    : {
+                        maxHeight   : 375,
+                        width       : extendedWidth,
+                        clickable   : false,
+                        scroll      : true,
+                        fixedContent: this.fixedContent.bind(this),
+                        content     : this.extendedContent.bind(this, {modalWidth: extendedWidth, map: false}),
+                        footer      : true
+                    },
 
-                            fixedContent: this.fixedContent.bind(this, false),
+                    onOpen        : function(popup){ this.currentMap = popup._map; },
+                    onOpenContext : this.parent,
+                    onClose       : function(){ this.currentMap = null; },
+                    onCloseContext: this.parent,
 
-                            content     : null,
+                    buttons:[
+                        this.buttonShow(true),
+                        this.buttonGST(true),
+                        this.parent.buttonShowAll(true)
+                    ],
+                    footer: gst_footer
+                });
 
-                            extended: {
-                                maxHeight   : 600,
-                                width       : 511,  //Allows pictures to be 3/4 * 427
-                                clickable   : false,
-                                scroll      : true,
-                                fixedContent: this.fixedContent.bind(this, true),
 
-                                //content     : this.extendedContent(),
-                                content     : this.extendedContent.bind(this, false ),
-
-                                footer      : true
-                            },
-
-                            buttons:[
-                                {
-                                    id     :'window_show'+this.id,
-                                    icon   : 'fal fa-window-maximize',
-                                    text   : {da: 'Vis mere', en:'Show more'},
-                                    class  : 'min-width-8em',
-                                    onClick: this_showInModalWindow
-                                },
-                                this.buttonGST()
-                            ],
-                            footer: gst_footer
-                        });
+            return marker;
 
         },
 
+        /*****************************************
+        getMarker
+        *****************************************/
+        getMarker: function(map){
+            var result;
+            map.eachLayer( (item) => {
+                if (item.feature && (item.feature.properties === this)){
+                    result = item;
+                    return true;
+                }
+            }, this);
+            return result;
+        },
 
         /*****************************************
         contentList
@@ -301,22 +420,53 @@ location.js,
                     var sectionContent = section.content(type, this.options);
                     if (sectionContent)
                         result.push({
+                            id      : section.list[0].id,
                             header  : section.header,
                             content : sectionContent,
+                            class   : section.class || ''
                         });
                 }
+            });
+
+            return result;
+        },
+
+        /*****************************************
+        locationText
+        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B - Position - KORT_NR
+        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B  - Position - KORT_NR
+        Bridges DK: BELIGGENHED<br>Position - KORT_NR
+        content : [
+            {id: {DK: 'HOVEDFARVAND_DDL2', GL: 'LANDSDEL',          BR: 'BELIGGENHED'}                  },
+            {id: {DK: 'FARVANDSAFSNIT_B',  GL: 'HOVEDFARVAND_DDL2', BR: null         }, before: ' - '   },
+            {id: {DK: null,                GL: 'FARVANDSAFSNIT_B',  BR: null         }, before: ' - '   },
+        *****************************************/
+        locationText: function(){
+            var _this = this,
+                idList,
+                result = '';
+            switch (this.type){
+                case 'DK':  idList = ['HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B'  , 'KYSTAFSNIT'       ]; break;
+                case 'GL':  idList = ['LANDSDEL',           'HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B' ]; break;
+                case 'BR':  idList = ['BELIGGENHED'                                                 ]; break;
+            }
+            idList.forEach((id) => {
+                if (_this.options[id])
+                    result = result + (result ? ', ' : '') + _this.options[id];
             });
             return result;
         },
 
-
-
        /*****************************************
         fixedContent
 
-        Beliggenhed
-        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
-        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B<br>Position - KORT_NR
+        Create the content for the fixed part of popups and modal.
+        Contains of tree parts:
+        1. Name
+
+        2. Location ("Beliggenhed")
+        Harbor DK : HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B - Position - KORT_NR
+        Harbor GL : LANDSDEL - HOVEDFARVAND_DDL2 - FARVANDSAFSNIT_B  - Position - KORT_NR
         Bridges DK: BELIGGENHED<br>Position - KORT_NR
 
         header  : {da:'Beliggenhed'},
@@ -331,8 +481,9 @@ location.js,
             {id: 'HAVNEPLANSKORT_NR', before: ' - '               }
         ]
 
+        3. Annotation ("Bemærkning...")
         *****************************************/
-        fixedContent: function(extended, $body){
+        fixedContent: function($body){
             var _this = this,
                 fixedContentTextClass     = 'd-block text-center',
                 fixedContentBoldTextClass = fixedContentTextClass + ' fw-bold',
@@ -342,97 +493,192 @@ location.js,
 
                 content = [];
 
-
-            //Name
+            //1. Name
             content.push({
                 text     : this.name,
                 textClass: fixedContentBoldTextClass
             });
 
 
-            //"Beliggenhed"
-            var idList, text = '';
-            switch (this.type){
-                case 'DK':  idList = ['HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B'  , 'KYSTAFSNIT'       ]; break;
-                case 'GL':  idList = ['LANDSDEL',           'HOVEDFARVAND_DDL2', 'FARVANDSAFSNIT_B' ]; break;
-                case 'BR':  idList = ['BELIGGENHED'                                                 ]; break;
-            }
-            idList.forEach((id) => {
-                if (_this.options[id])
-                    text = text + (text ? ', ' : '') + _this.options[id];
-            });
-            content.push({
-                text     : text,
-                textClass: fixedContentTextClass
-            });
+            //2. Location ("Beliggenhed") = 2.A=Text, 2.B=Position, 2.C=Map
+            var locationContent = [];
 
-            //Position
+            //2.A=Text
+            locationContent.push({text: {da: this.locationText()}});
+
+            //2.B=Position
             var posText = '';
-            if (this.options.BREDDE && this.options.LAENGDE)
+            if (this.options.BREDDE && this.options.LAENGDE){
                 posText = this.options.BREDDE + ' ' + this.options.LAENGDE;
+                locationContent.push({text: posText, link: link, textData: textData, textClass: fixedContentTextClass});
+            }
 
-            //Kort
+
+            //2.C=Map
             var mapText = '';
             ['KORT_NR', 'HAVNEPLANSKORT_NR'].forEach((id) => {
                 if (_this.options[id])
                     mapText = mapText + (mapText ? ' - ' : '') + _this.options[id];
             });
+            if (mapText)
+                locationContent.push({text: {da:mapText}});
 
+            //Create <div> with flex-display holding the elements in locationContent
+            content.push(
+                $('<div/>')
+                    .addClass('location-group d-flex justify-content-center')
+                    ._bsAddHtml(locationContent)
+            );
 
-            if (extended){
-                var textArray = [];
-                if (posText) textArray.push({text: posText, link: link, textData: textData});
-                if (posText && mapText) textArray.push(' - ');
-                if (mapText) textArray.push(mapText);
-                if (textArray.length)
-                    content.push(
-                        $('<div/>')
-                            .addClass('d-flex justify-content-center')
-                            ._bsAddHtml(textArray)
-                    );
-            } else {
-                if (posText)
-                    content.push({text: posText, link: link, textData: textData, textClass: fixedContentTextClass});
-                if (mapText)
-                    content.push({text: mapText, textClass: fixedContentTextClass});
-            }
-
+            //3. Annotation ("Bemærkning...")
             if (this.annotation)
                 content.push({
-                    text     : extended ? '<strong>Anmærkning</strong><br>' + this.annotation : {da: 'Anmærkning...'/*, en:'Annotation...'*/},
-                    textClass: (extended ? 'd-block' : fixedContentTextClass) + ' ' + this.parent.options.annotationClass
+                    text     : {da: 'Anmærkning...'},
+                    textClass: fixedContentTextClass + ' ' + this.parent.options.annotationClass
                 });
 
 
             $body._bsAddHtml(content);
+            return $body;
         },
 
 
         /*****************************************
         extendedContent
         *****************************************/
-        extendedContent: function(allOpen, $body){
-            $.bsAccordion( this.accordionOptions(allOpen) ).appendTo($body);
+        extendedContent: function(options, $body){
+            $.bsAccordion( this.accordionOptions(options) ).appendTo($body);
         },
+
+
+        /*****************************************
+        createMap
+        *****************************************/
+        createMap: function($element, accOptions){
+            var largeMap = accOptions.map == 'large',
+                $inner   = $('<div/>').appendTo($element),
+                $map     = $('<div/>')
+                               .css({
+                                   height: largeMap ? '500px' : '300px',
+                                   width:'100%'
+                               })
+                              .appendTo($inner),
+                map = L.map($map.get(0), nsHL.options.leaflet.mapOptions);
+
+            L.tileLayer(
+                nsHL.options.leaflet.tileUrl,
+                {attribution: nsHL.options.leaflet.attribution || ''}
+            ).addTo(map);
+
+            map.setView(this.latLng, map.getZoom(), {animate: false, reset: true});
+
+            //Create marker by creaating geoJOSN-layer with only one marker
+            var geoJSON = this.parent.getGeoJSON({
+                    onlyLocationId: this.id,
+                    geoJSON: {
+                        onEachFeature: null,
+                        markerOptions: {
+                            noTooltip: true,
+                            noPopup  : true
+                        }
+                    }
+                });
+            geoJSON.addTo(map);
+
+
+            //Add button on map to center on geoJSON-elements
+            map.addControl(
+                L.control.bsButton({
+                    position: 'topcenter',
+                    icon    : 'fa-expand',
+                    onClick : this._maps_center.bind(this),
+                    context : this
+                })
+            );
+
+
+
+            //Save the map in the Location and sync the maps in different modal-modes
+            this.maps = this.maps || {};
+            this.maps[map._leaflet_id] = map;
+            map.on('moveend zoomend', this._maps_update_center_and_zoom.bind(this) );
+
+
+
+            //Resize the map and set view to geoJSON-objects when the outer element is resized
+            $element.resize( function(){
+                map.invalidateSize();
+
+
+            });
+        },
+
+        /*****************************************
+        _maps_center
+        *****************************************/
+        _maps_center: function(){
+            var latlng = this.latLng;
+            this.mapCenter = latlng;
+
+            $.each( this.maps, (id, map) => {
+                map.setView(latlng, nsHL.options.leaflet.mapOptions.zoom, {animate: false, reset: true});
+            });
+
+        },
+
+        /*****************************************
+        _maps_update_center_and_zoom
+        *****************************************/
+        _maps_update_center_and_zoom: function(event){
+            if (this.doNotUpdate) return;
+            this.doNotUpdate = true;
+            var _this = this,
+                mapId = event.target._leaflet_id,
+                map   = this.maps[mapId];
+
+            this.mapCenter = map.getCenter();
+            this.mapZoom   = map.getZoom();
+            $.each( this.maps, (id, map) => {
+                if (map._leaflet_id != mapId)
+                    map.setView(_this.mapCenter, _this.mapZoom, {animate: false, reset: true});
+            }, this);
+            this.doNotUpdate = false;
+        },
+
+
 
         /*****************************************
         accordionOptions
         *****************************************/
-        accordionOptions: function(allOpen){
+        accordionOptions: function(accOptions = {}){
             var _this         = this,
-                accordionList = [];
+                accordionList = [],
+                modalWidth    = accOptions.modalWidth || 400,
+                inclMap       = !!accOptions.map;
 
             //Accordion list with all text
             var first = true;
             this.contentList().forEach((section) => {
-                accordionList.push({
-                    text   : section.header,
-                    content: section.content,
-                    open   : first
-                });
-                first = false;
-            });
+                var sectionContent = section.content;
+                if (section.id == 'MAP')
+                    //Bug fix to pass accOptions to the map-creator
+                    sectionContent = function(sectionContent){
+                        return function($elem){
+                            sectionContent.apply(this, [$elem, accOptions]);
+                        };
+                    }(sectionContent);
 
+                if ((section.id != 'MAP') || inclMap){
+                    accordionList.push({
+                        text          : section.header,
+                        content       : sectionContent,
+                        contentContext: this,
+                        isOpen        : first,
+                        className     : section.class
+                    });
+                    first = false;
+                }
+            });
 
             //Add accordions with photos, plans and bridge light
             [
@@ -460,10 +706,10 @@ location.js,
                         content : {
                             type           : 'carousel',
                             list           : carouselList,
-                            innerHeight    : allOpen ? 427 : 320,   //The height of the inner-container with the items.
-                            fitHeight      : true,                  //If true and innerHeight is set: All images get max-height = innerHeight
-                            itemsMaxOwnSize: false,                 //If true, or innerHeight and fitHeight is set: Image size can be bigger that its original size
-                            defaultOnClick : true                   //If true and no itemOnClick or item.onClick: Click on image open a modal-window
+                            innerHeight    : Math.min(430, (modalWidth - 35)*1/1.5),   //The height of the inner-container with the items. Fits landscape-mode within given modal-width
+                            fitHeight      : true,  //If true and innerHeight is set: All images get max-height = innerHeight
+                            itemsMaxOwnSize: false, //If true, or innerHeight and fitHeight is set: Image size can be bigger that its original size
+                            defaultOnClick : true   //If true and no itemOnClick or item.onClick: Click on image open a modal-window
                         }
                     });
                 }
@@ -493,10 +739,16 @@ location.js,
             return {
                 type      : 'accordion',
                 list      : accordionList,
-                neverClose: allOpen
+                neverClose: accOptions.allOpen,
+                multiOpen : accOptions.multiOpen,
             };
         }
     };
+
+    //Extend Havnelods.Location to include contextmenu
+    $.extend(nsHL.Location.prototype, L.BsContextmenu.contextmenuInclude);
+
+
 }(jQuery, L, this.i18next, this.moment, this, document));
 
 
@@ -593,7 +845,17 @@ location-DK.js,
             });
 
             return options;
+        },
+
+        /***********************************
+        filter
+        options.ERHVERVSHAVN : BOOLEAN
+        options.LYSTBAADEHAVN: BOOLEAN
+        ***********************************/
+        filter: function(filterValue){
+            return this.options[filterValue];
         }
+
     });
 
 
@@ -681,6 +943,14 @@ location-GL.js,
             });
 
             return options;
+        },
+
+        /***********************************
+        filter
+        ***********************************/
+        filter: function( filterValue ){
+            filterValue = filterValue ? filterValue.split('_')[1] : '0'; //filterValue = 'cat_N' => 'N'
+            return ''+this.options.HAVNEKATEGORI == filterValue;
         }
     });
 
@@ -794,6 +1064,23 @@ Setup to create content for different classes of Locations
         nsHL = ns.Havnelods = ns.Havnelods || {};
 
 
+    nsHL.HAVNEKATEGORI2text = function( havnekategori ){
+        switch (''+havnekategori){
+            case '1': return {da: 'By'     , en: 'Town'   };
+            case '2': return {da: 'Bygd'   , en: 'Hamlet' };
+            case '3': return {da: 'Station', en: 'Station'};
+        }
+        return {da:'', en:''};
+    };
+
+    nsHL.HAVNEKATEGORI2text_plural = function( havnekategori ){
+        switch (''+havnekategori){
+            case '1': return {da: 'Byer'     , en: 'Towns'   };
+            case '2': return {da: 'Bygder'   , en: 'Hamlets' };
+            case '3': return {da: 'Stationer', en: 'Stations'};
+        }
+        return {da:'', en:''};
+    };
     /***********************************************************************************************
     contentList is a list of sections. each section contains a header and a list of ids and options
     for the data given the section
@@ -809,7 +1096,8 @@ Setup to create content for different classes of Locations
         around: [STRING, STRING]
         before: STRING  - only if there is an element before
         after : STRING  - only if there is an element after
-        format: function( content ) return formatted string
+        format: function( content ) return formatted string or $-element
+        falseAsZero: BOOLEAN. If true value == false is treated as value == 0
     }
 
     ***********************************************************************************************/
@@ -859,10 +1147,19 @@ Setup to create content for different classes of Locations
                 var id = element.id || null,
                     value = id ? hlOptions[element.id] : undefined;
 
-                if ((value === undefined) || (value === false))
+                if ((value === undefined) || ((value === false) && !element.falseAsZero))
                     return;
 
-                value = element.format ? element.format(value) : value;
+                //Special version with create-function
+                if (element.create){
+                    result = element.create;
+                    return true;
+                }
+
+                value = element.format ?
+                        element.format(value, this) :
+                            ((value === false) && element.falseAsZero) ? 0 :
+                            value;
 
                 if (after)
                     result = result + after;
@@ -888,33 +1185,42 @@ Setup to create content for different classes of Locations
             if (result && this.after)
                 result = result + this.after;
 
-            result = result.replaceAll('\n', '<br>');
+            if (typeof result == 'string')
+                result = result.replaceAll('\n', '<br>');
 
             return result;
         }
     };
 
-    function HAVNEKATEGORI2text( havnekategori ){
-        switch (''+havnekategori){
-            case '1': return 'By';      //Town,
-            case '2': return 'Bygd';    //Hamlet
-            case '3': return 'Station'; //Station
-        }
-        return '';
-    }
-
     nsHL.contentList = [{
+        //SECTION for the map
+        header : {da: 'Kort', en:'Map'},
+        content: [{
+            id    : 'MAP',
+            create: function($elem, options){
+                this.createMap($elem, options);
+            }
+        }]
+    },{
         /*
         Befolkning - only for Harbor-GL
         */
         header  : {da:'Befolkning'},
         onlyType: 'GL',
         content: [
-            {id: 'HAVNEKATEGORI',          after : '<br>', format: HAVNEKATEGORI2text},
-            {id: 'INDBYGGERANTAL',         after : ' indbyggere'},
+            {id: 'HAVNEKATEGORI',          after : '<br>', format: function (havnekategori){ return nsHL.HAVNEKATEGORI2text(havnekategori).da;} },
+            {id: 'INDBYGGERANTAL',         after : ' indbyggere', falseAsZero: true},
             {id: 'INDBYGGERANTAL_AARSTAL', around: [' (',')']}
         ]
     }];
+
+    //Add SECTION for Annotation (Anmærkning)
+    nsHL.contentList.push({
+        header : {da: 'Anmærkning'},
+        content: 'ANMERKNING',
+        class  : 'hl-annotation-colors alert-info',
+    });
+
 
     //Add simple SECTION for no-bridge
     var list = [
@@ -934,7 +1240,6 @@ Setup to create content for different classes of Locations
         'Afmærkning'              , 'AFMAERK',
         'Erhverv'                 , 'ERHVERV',
         'Forsyning'               , 'FORSYNING',
-        'Ankerplads'              , 'ANKERPL',
         'Redningsstation'         , 'REDNINGSSTATION',
         'Båker'                   , 'BAAKER',
         'Fyr'                     , 'FYR',
@@ -1036,66 +1341,125 @@ Setup to create content for different classes of Locations
     var ns = window.fcoo = window.fcoo || {},
         nsHL = ns.Havnelods = ns.Havnelods || {};
 
+
+    //Extend Havnelods.options
+    nsHL.options = $.extend( true, {
+
+
+        smallTableWithAllLocations: false,
+
+        //modalIsExtended: If true the modal 'start' as extended (modal-option.isExtended: true)
+        modalIsExtended: ns.modernizrDevice.isDesktop || ns.modernizrDevice.isTablet,
+
+
+        filterIcon     : 'fa-filter'
+
+        //getDefaultMap: function(){ ... }
+
+    }, nsHL.options || {} );
+
+
+
+    //Extend window.fcoo.Havnelods.options with leaflet = options for different leaflet objects
+    nsHL.options.leaflet = nsHL.options.leaflet || {};
+
+    //window.Niord.options.leaflet.tileUrl = url for the tile-layer of the map inside the bsModal-window
+    nsHL.options.leaflet.tileUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+    //window.Niord.options.leaflet.attribute = attribute for the tile-layer of the map inside the bsModal-window
+    nsHL.options.leaflet.attribution = '<i class="far fa-copyright"></i></i>&nbsp;<a target="_blank" href="https://www.openstreetmap.org/copyright/en">OpenStreetMap</a>';
+
+    //window.Niord.options.leaflet.mapOptions = options for map-objects in modal-windows
+    nsHL.options.leaflet.mapOptions = {
+        zoomControl         : false,
+        bsZoomControl       : false,
+        bsZoomOptions: {
+            position      : 'topleft',
+            historyEnabled: false,
+        },
+        attributionControl  : false,    //Use bsAttributionControl instead of default attribution-control
+        bsAttributionControl: true,
+
+        closePopupOnClick   : true,	    //true	Set it to false if you don't want popups to close when user clicks the map.
+        boxZoom             : false,    //true	Whether the map can be zoomed to a rectangular area specified by dragging the mouse while pressing the shift key.
+        doubleClickZoom     : true,	    //true	Whether the map can be zoomed in by double clicking on it and zoomed out by double clicking while holding shift. If passed 'center', double-click zoom will zoom to the center of the view regardless of where the mouse was.
+        dragging            : true,     //true	Whether the map be draggable with mouse/touch or not.
+        zoomSnap            : .25,	    //1	Forces the map's zoom level to always be a multiple of this, particularly right after a fitBounds() or a pinch-zoom. By default, the zoom level snaps to the nearest integer; lower values (e.g. 0.5 or 0.1) allow for greater granularity. A value of 0 means the zoom level will not be snapped after fitBounds or a pinch-zoom.
+        zoomDelta           : .25,	    //1	Controls how much the map's zoom level will change after a zoomIn(), zoomOut(), pressing + or - on the keyboard, or using the zoom controls. Values smaller than 1 (e.g. 0.5) allow for greater granularity.
+        trackResize         : false,	//true	Whether the map automatically handles browser window resize to update itself.
+
+
+        center  : [0,0],    //undefined	Initial geographic center of the map
+        zoom    : 6,        //undefined	Initial map zoom level
+        minZoom : 4,        //Minimum zoom level of the map. If not specified and at least one GridLayer or TileLayer is in the map, the lowest of their minZoom options will be used instead.
+        maxZoom	: 18        //Maximum zoom level of the map. If not specified and at least one GridLayer or TileLayer is in the map, the highest of their maxZoom options will be used instead.
+    };
+
+
     /**********************************************************************
-    L.GeoJSON.Havnelods(options)
-    Generel constructor for all variations
+    LocationGroup
+    Generel constructor for group of Locations
     ***********************************************************************/
-    L.GeoJSON.Havnelods = L.GeoJSON.extend({
-        //Default options
+    function LocationGroup(options){
+        this.options = $.extend(true, {}, this.options, options);
+
+        //Add context-menu item
+        this.addContextmenuItems([ this.buttonShowAll() ]);
+
+        //Load and add geoJSON-data
+        this.list = [];
+        window.Promise.getJSON(
+            ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
+            {},
+            this.resolve.bind(this)
+        );
+    }
+
+
+
+    /***********************************************************************************************
+    LocationGroup.prototype
+    ***********************************************************************************************/
+    LocationGroup.prototype = {
         options: {
+            //Default options
             idName          : 'HAVNE_ID',
             subDir          : 'havnelods',
             fileName        : 'havnelods.json',
             images          : 'images',
 
             annotationId    : 'ANMERKNING',
-            annotationClass : 'hl-annotation alert-info accordion-body accordion'
+            annotationClass : 'hl-annotation-colors hl-annotation alert-info'
         },
         locationConstructor: null,
-
-
-
-        /*********************************************
-        initialize
-        *********************************************/
-        initialize: function(geojson, options = {}) {
-            options = $.extend(true, {}, {
-                pointToLayer: $.proxy(this.pointToLayer, this)
-            }, options);
-
-            L.GeoJSON.prototype.initialize.call(this, geojson, options);
-
-            //Load and add geoJSON-data
-            this.list = [];
-            window.Promise.getJSON(
-                ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
-                {},
-                $.proxy(this.resolve, this)
-            );
-        },
 
         /*********************************************
         resolve
         *********************************************/
         resolve: function(data){
             //data = []LOCATION
-            var _this = this,
-                geoJSONData = {
+            this.list = [];
+            data.forEach((options) => {
+/* TEST Only Hundested
+if (options.NAVN != 'Hundested Havn') return false;
+console.log(options);
+//*/
+                var location = new this.locationConstructor(options, this);
+                location.index = this.list.length;
+                this.list.push(location);
+            }, this);
+        },
+
+        /*********************************************
+        getGeoJSON
+        *********************************************/
+        getGeoJSON: function(options = {}){
+            var geoJSONData = {
                     type    : "FeatureCollection",
                     features: []
                 };
-
-            this.list = [];
-            data.forEach((options) => {
-                /*TEST: Only Langebro
-                if (options.BRO_ID != '7d17393b-3e61-4157-be25-b8861a78b9ad')
-                    return false;
-                //*/
-                var location = new _this.locationConstructor(options, _this);
-                location.index = _this.list.length;
-                _this.list.push(location);
-
-                if (location.latLng)
+            this.list.forEach((location) => {
+                if (location.latLng && (!options.onlyLocationId ||  (location.id == options.onlyLocationId)))
                     geoJSONData.features.push({
                         type      : "Feature",
                         geometry  : {type: "Point", coordinates: [location.latLng.lng, location.latLng.lat]},
@@ -1103,56 +1467,328 @@ Setup to create content for different classes of Locations
                     });
             });
 
-            this.addData(geoJSONData);
+            var geoJSON = new L.GeoJSON.Havnelods(null, options.geoJSON);
+            geoJSON.addData(geoJSONData);
+            return geoJSON;
+        },
+
+
+        /*********************************************
+        buttonShowAll
+        *********************************************/
+        buttonShowAll: function(){
+            return {
+                icon   : 'fa-th-list',
+                text   : {da:'Vis alle', en:'Show all'},
+                class  : 'min-width-5em',
+                onClick: this.asModal.bind(this)
+            };
+        },
+
+
+        /*********************************************
+        asModal
+        Will display a list of all harbors as
+        1: One column with all info, or
+        2: Four columns with id, date, area, and title
+        *********************************************/
+        asModal: function(id, latlng, element, map){
+
+            map = this.getMap( map );
+
+            if (this.bsModal)
+                this.bsModal.close();
+
+            //Close any location-modal
+            if (this.bsModalLocation)
+                this.bsModalLocation.close();
+
+
+            var hasFilter = !!this.locationConstructor.prototype.filter;
+
+            //Check screen size and select between small and normal size table
+            var displayInSmallTable = nsHL.options.smallTableWithAllLocations,
+                columns = [];
+
+            if (displayInSmallTable)
+                columns.push(
+                    { id: 'name',     noWrap: false,  header: {da:'Navn og beliggenhed', en:'Name and location'},    align: 'left', sortable: true }
+                );
+            else
+                columns.push(
+                    { id: 'name',     header: {da:'Navn',         en:'Name'},    noWrap: true,  align: 'left',  sortable: true },
+                    { id: 'location', header: {da:'Beliggenhed', en:'Location'},                align: 'left',  sortable: true },
+                    { id: 'chart',    header: {da:'Kort', en:'Chart'},                          align: 'center'                }
+                );
+            columns.push(
+                {id: 'annotation', header: displayInSmallTable ? null : {da:'Anm.', en:'Ann.'},  align: 'center', noWrap: false, width: displayInSmallTable ? '1.2em' : '4em' }
+            );
+            if (!displayInSmallTable && map)
+                columns.push(
+                    {id: 'centerOnMap', header: {icon: 'fa-map'},  align: 'center', noWrap: false, width: '2em', noHorizontalPadding: true, noVerticalPadding: true }
+                );
+
+            this.bsTableOptions = {
+                verticalBorder   : true,
+                selectable       : true,
+                allowZeroSelected: false,
+                allowReselect    : true,
+                onChange         : this.locationAsModal.bind(this),
+                columns          : columns
+            };
+
+            //Create table and add data
+            var bsTable = this.bsTable = $.bsTable(this.bsTableOptions);
+            this.list.forEach( (location) => {
+                bsTable.addRow( displayInSmallTable ? location.asSmallTableRow() : location.asTableRow() );
+            });
+
+            var bsModalOptions = {
+                header     : {text: this.options.name},
+                buttons    : hasFilter ? [
+                    {icon: nsHL.options.resetFilterIcon, text:{da:'Nulstil', en:'Reset'}, class:'min-width-5em', onClick: this.resetFilter.bind(this)       },
+                    {icon: nsHL.options.filterIcon,      text:{da:'Filter', en:'Filter'}, class:'min-width-5em', onClick: this.filterAsModalForm.bind(this) }
+                ] : null,
+                flexWidth  : true,
+                megaWidth  : true,
+
+                static       : true,
+                show         : false,
+                removeOnClose: true,
+
+                footer       : hasFilter ? {text: '&nbsp;'} : null
+            };
+
+            //Create the modal and save the footer
+            this.bsModal = this.bsTable.asModal( bsModalOptions );
+            this.$bsModalFooter = this.bsModal.bsModal.$footer;
+
+            //Filter and display the modal with the table
+            this.filter(this.filterOptions);
+
+            this.bsModal.show();
+        },
+
+
+        /*********************************************
+        filterAsModalForm
+        *********************************************/
+        filterAsModalForm: function(){
+            if (!this.filterBsModalForm){
+                this.filterBsModalForm =  $.bsModalForm({
+                    header: {
+                        icon: nsHL.options.filterIcon,
+                        text: {da:'Vis...', en:'Show...'},
+                    },
+                    closeWithoutWarning: true,
+                    onSubmit: this.filter.bind(this),
+                    scroll  : false,
+                    content : [{
+                        id       : 'filter',
+                        type     : 'selectlist',
+                        fullWidth: true,
+                        items    : this.getFilterItems()
+                    }]
+                });
+            }
+
+            this.filterBsModalForm.edit( this.filterOptions || {filter: 'ALL'} );
+        },
+
+        /******************************************************
+        filter
+        ******************************************************/
+        filter: function(filterOptions){
+            this.filterOptions = filterOptions;
+            var showAll = !filterOptions || (filterOptions.filter == 'ALL'),
+                filterValue = showAll ? 'ALL' : filterOptions.filter;
+            var _this = this;
+            if (this.bsTable)
+                this.bsTable.filterTable(function(rowData, id){
+                    if (showAll)
+                        return true;
+                    var location = _this.getLocation(rowData.id || id);
+                    return location ? location.filter(filterValue) : false;
+                });
+            this._updateFilterInfo();
+        },
+
+        /******************************************************
+        resetFilter
+        ******************************************************/
+        resetFilter: function(){
+            this.filterOptions = {filter: 'ALL'};
+            this._updateFilterInfo();
+            if (this.bsTable)
+                this.bsTable.resetFilterTable();
+        },
+
+
+        _updateFilterInfo: function(){
+            var filterExist = this.filterOptions && (this.filterOptions.filter) && (this.filterOptions.filter != 'ALL'),
+                filterId = filterExist ? this.filterOptions.filter : 'ALL',
+                filterText;
+
+            if (filterExist)
+                this.getFilterItems().forEach( (item) => {
+                    if (item.id == filterId)
+                        filterText = item.text;
+                });
+
+            this.$bsModalFooter
+                .empty()
+                ._bsAddHtml(filterExist ? {icon: nsHL.options.filterIcon, text: filterText} : '&nbsp;');
+        },
+
+
+        /*********************************************
+        getLocation
+        *********************************************/
+        getLocation: function(id){
+            return this.list.find(location => location.id == id);
+        },
+
+        /*********************************************
+        locationAsModal
+        *********************************************/
+        locationAsModal: function(id){
+            var loc = this.getLocation(id);
+            if (loc)
+                loc.asModal();
+        },
+
+
+        /*********************************************
+        getMap
+        *********************************************/
+        getMap: function(map){
+            this.currentMap = (map instanceof L.Map ? map : null) || this.currentMap || (nsHL.options.getDefaultMap ? nsHL.options.getDefaultMap() : null);
+            return this.currentMap;
+        },
+
+    };
+
+    //Extend LocationGroup to include contextmenu
+    $.extend(LocationGroup.prototype, L.BsContextmenu.contextmenuInclude);
+
+
+
+
+    /**********************************************************************
+    ***********************************************************************
+    nsHL.Havnelods_DK(options)
+    LocationGroup with danish harbors
+    ***********************************************************************
+    **********************************************************************/
+    nsHL.Havnelods_DK = function(options = {}){
+        options.fileName = 'havnelods_DK.json';
+        options.name = {da:'Havne i Danmark', en:'Harbors in Denmark'},
+
+        LocationGroup.call(this, options);
+        this.locationConstructor = nsHL.Location_DK;
+
+        this.getFilterItems = function(){
+            return [
+                {id: 'ALL',           text: {da: 'Alle havne', en: 'All harbors'}},
+                {id: 'ERHVERVSHAVN',  text: {da: 'Kun Erhvervshavne', en: 'Only Commercials Ports'}},
+                {id: 'LYSTBAADEHAVN', text: {da: 'Kun Lystbådehavne', en: 'Only Marinas'}}
+            ];
+        };
+
+    };
+    nsHL.Havnelods_DK.prototype = Object.create(LocationGroup.prototype);
+
+
+    /*********************************************************************
+    **********************************************************************
+    nsHL.Havnelods_GL(options)
+    LocationGroup with Greenlandic towns, hamlets, and stations
+    **********************************************************************
+    **********************************************************************/
+    nsHL.Havnelods_GL = function(options = {}){
+        options.fileName = 'havnelods_GL.json';
+        options.name = {da: 'Byer, Bygder og Stationer i Grønland', en: 'Towns, Hamlets, and Stations in Greenland'},
+
+        LocationGroup.call(this, options);
+        this.locationConstructor = nsHL.Location_GL;
+
+        this.getFilterItems = function(){
+            var result = [{id: 'ALL', text: {da: 'Alle Byer, Bygder og Stationer', en: 'All Towns, Hamlets, and Stations'}}];
+
+            for (var i=0; i<10; i++){
+                var text = nsHL.HAVNEKATEGORI2text_plural(i);
+                if (text.da)
+                    result.push({id:'cat_'+i, text: {da:'Kun '+text.da, en:'Only '+text.en}});
+            }
+            return result;
+        };
+
+
+
+    };
+    nsHL.Havnelods_GL.prototype = Object.create(LocationGroup.prototype);
+
+    /*********************************************************************
+    **********************************************************************
+    nsHL.Havnelods_Bridges(options)
+    LocationGroup with danish bridges
+    **********************************************************************
+    **********************************************************************/
+    nsHL.Havnelods_Bridges = function(options = {}){
+        $.extend(options, {
+            idName    : 'BRO_ID',
+            fileName  : 'havnelods_BR.json',
+            name      : {da:'Broer i Danmark', en:'Bridges in Denmark'},
+
+            planHeader: {da:'Broplan'/*, en:'MANGLER'*/},
+
+            noFilter  : true,
+        });
+        LocationGroup.call(this, options);
+        this.locationConstructor = nsHL.Location_Bridges;
+    };
+    nsHL.Havnelods_Bridges.prototype = Object.create(LocationGroup.prototype);
+
+    /**********************************************************************
+    ***********************************************************************
+    L.GeoJSON.Havnelods(options)
+    Generel constructor for all variations
+    ************************************************************************
+    ***********************************************************************/
+    L.GeoJSON.Havnelods = L.GeoJSON.extend({
+        /*********************************************
+        initialize
+        *********************************************/
+        initialize: function(geojson, options = {}) {
+            options = $.extend(true, {}, {
+                pointToLayer : $.proxy(this.pointToLayer, this),
+                onEachFeature: $.proxy(this.onEachFeature, this),
+            }, options);
+            L.GeoJSON.prototype.initialize.call(this, geojson, options);
         },
 
         /*********************************************
         pointToLayer
         *********************************************/
         pointToLayer: function(geoJSONPoint){
-            return geoJSONPoint.properties.createMarker();
+            return geoJSONPoint.properties.createMarker(this.options.markerOptions);
+        },
+
+        /*********************************************
+        onEachFeature - Add context-menu-items
+        *********************************************/
+        onEachFeature: function(feature, element){
+            var loc = feature.properties;
+            element
+                .setContextmenuHeader(loc.header, true)
+                .setContextmenuWidth( '8em' )
+                .addContextmenuItems([
+                    loc.buttonShow(),
+                    loc.buttonGST(1),
+                ])
+                .setContextmenuParent(loc.parent);
         },
     });
 
-    /**********************************************************************
-    ***********************************************************************
-    L.GeoJSON.Havnelods_DK(options)
-    GeoJSON-layer with danish harbors
-    ***********************************************************************
-    **********************************************************************/
-    L.GeoJSON.Havnelods_DK = L.GeoJSON.Havnelods.extend({
-        options: {
-            fileName: 'havnelods_DK.json'
-        },
-        locationConstructor: nsHL.Location_DK
-    });
-
-    /*********************************************************************
-    **********************************************************************
-    L.GeoJSON.Havnelods_GL(options)
-    GeoJSON-layer with Greenlandic towns, hamlets, and stations
-    **********************************************************************
-    **********************************************************************/
-    L.GeoJSON.Havnelods_GL = L.GeoJSON.Havnelods.extend({
-        options: {
-            fileName: 'havnelods_GL.json'
-        },
-        locationConstructor: nsHL.Location_GL
-    });
-
-    /*********************************************************************
-    **********************************************************************
-    L.GeoJSON.Havnelods_Bridges(options)
-    GeoJSON-layer with danish bridges
-    **********************************************************************
-    **********************************************************************/
-    L.GeoJSON.Havnelods_Bridges = L.GeoJSON.Havnelods.extend({
-        options: {
-            idName    : 'BRO_ID',
-            fileName  : 'havnelods_BR.json',
-            planHeader: {da:'Broplan'/*, en:'MANGLER'*/}
-        },
-        locationConstructor: nsHL.Location_Bridges
-    });
 
 }(jQuery, L, this.i18next, this.moment, this, document));

@@ -13,6 +13,25 @@
   <link  href="../src/fcoo-havnelods.css" rel="stylesheet">	
 
   <style>
+          html, body {
+            padding: 0; margin: 0; width:100%; height:100%; overflow: hidden;
+        }
+        #map {
+            _margin: 50px !important;
+            padding: 0; margin: 0; 
+            width:50%; _width:100%; 
+            height:99%;
+        }
+        #map2, #map3 {
+            margin: 2px !important;
+            padding: 0; margin: 0; 
+            width:50%; _width: 50%;
+            height:99%;
+        }
+
+  
+  
+  
         .annotation {
             color: red;
             background-color: yellow;
@@ -20,9 +39,10 @@
   </style>
 </head>
 
-<body>
-	<div id="map" style="width: 100%; height: 100%"></div>
-	
+<body style="display:flex">
+	<div id="map" style="_width: 50%; _height: 100%"></div>
+	<div id="map2" style="_width: 50%; _height: 100%"></div>
+	<button onClick="listAll()">List all</button>
     <script>
         window.fcoo = window.fcoo || {};
         window.fcoo.DEMO_VERSION = true;
@@ -38,7 +58,7 @@
     <script src="../src/fcoo-havnelods.js"></script>
     <script>
         i18next.init();
-        i18next.changeLanguage('da');
+        i18next.changeLanguage('en');
         i18next.options.fallbackLng = i18next.language == 'da' ? 'en' : 'da';
 
 
@@ -69,18 +89,66 @@
 */
 
         $(function() {
+            
+            
+            
 	        var map = L.map('map').setView([56.2, 11.5], 6);
+	        var map2 = L.map('map2').setView([56.2, 11.5], 4);
+/*            
+    map.setContextmenuHeader({icon:'fa-map', text:'MAP 1'});
+    map.addContextmenuItems([{
+        icon:'fa-home', text:{da:'Map#1 (w=180)'}, 
+        onClick: function(id, latlng){ 
+            console.log('MAP 1-1',latlng, arguments); 
+        }, 
+        width:180 
+    },{
+        icon:'fa-map',  text:'Map#1 (dont close)', type:'checkbox',
+        onClick: function(id, latlng){ 
+            console.log('CLICK, MAP 1-2',latlng, arguments); 
+        }, 
+        closeOnClick: false 
+    }]);
+*/
+                
+
     		L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		        maxZoom: 18,
+		        maxZoom: 18, zoom: 7,
                 attribution: '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors</a>'
             }).addTo(map);
+    		L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+		        maxZoom: 18, zoom: 7,
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors</a>'
+            }).addTo(map2);
 
-            (new L.GeoJSON.Havnelods_DK(null, {
-                onClickPosition: function( location ){ console.log('LOCATION', location); },
-            }) ).addTo(map);
+            
+            var nsHL = window.fcoo.Havnelods;
 
-            (new L.GeoJSON.Havnelods_GL()).addTo(map);
-            (new L.GeoJSON.Havnelods_Bridges()).addTo(map);
+            nsHL.options.getDefaultMap = function(){ return map };
+            nsHL.options.modalIsExtended = true;
+
+            var HLDK = new nsHL.Havnelods_DK({
+                onClickPosition: function( location ){ console.log('LOCATION', location); }
+            });
+            
+            var HLGL = new nsHL.Havnelods_GL();
+            var HLBR = new nsHL.Havnelods_Bridges();
+
+
+            window.listAll = function(){
+                HLGL.asModal();
+            };
+
+            setTimeout(function(){
+
+                HLDK.getGeoJSON().addTo(map);
+                HLDK.getGeoJSON().addTo(map2);
+            
+                HLGL.getGeoJSON().addTo(map);
+                HLBR.getGeoJSON().addTo(map);
+           
+            }, 1000);
+
 
             fcoo.promiseList.promiseAll();
         });

@@ -121,28 +121,46 @@ console.log(options);
                 location.index = this.list.length;
                 this.list.push(location);
             }, this);
+
+            this.dataIsLoaded = true;
+            if (this.geoJSONList)
+                this.geoJSONList.forEach( (geoJSON) => {
+                    geoJSON.addData( this.getGeoJSONData() );
+                }, this);
         },
 
         /*********************************************
         getGeoJSON
         *********************************************/
         getGeoJSON: function(options = {}){
-            var geoJSONData = {
+            var geoJSON = new L.GeoJSON.Havnelods(null, options);
+            this.geoJSONList = this.geoJSONList || [];
+            if (this.dataIsLoaded)
+                geoJSON.addData( this.getGeoJSONData(options) );
+            else
+                this.geoJSONList.push( geoJSON );
+            return geoJSON;
+        },
+
+
+        /*********************************************
+        getGeoJSON
+        *********************************************/
+        getGeoJSONData: function(options = {}){
+            var result = {
                     type    : "FeatureCollection",
                     features: []
                 };
             this.list.forEach((location) => {
                 if (location.latLng && (!options.onlyLocationId ||  (location.id == options.onlyLocationId)))
-                    geoJSONData.features.push({
+                    result.features.push({
                         type      : "Feature",
                         geometry  : {type: "Point", coordinates: [location.latLng.lng, location.latLng.lat]},
                         properties: location
                     });
             });
 
-            var geoJSON = new L.GeoJSON.Havnelods(null, options.geoJSON);
-            geoJSON.addData(geoJSONData);
-            return geoJSON;
+            return result;
         },
 
 
@@ -444,7 +462,7 @@ console.log(options);
         pointToLayer
         *********************************************/
         pointToLayer: function(geoJSONPoint){
-            return geoJSONPoint.properties.createMarker(this.options.markerOptions);
+            return geoJSONPoint.properties.createMarker(this.options.markerOptions, this);
         },
 
         /*********************************************

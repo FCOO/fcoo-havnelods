@@ -179,8 +179,8 @@ location.js,
         getMarkerOptions: function(options = {}){
             return  $.extend(true,
                         options.noTooltip ? {} : {tooltip: this.header},
-                        this.parent.options.markerPane ? {pane      : this.parent.options.markerPane} : {},
-                        this.parent.options.shadowPane ? {shadowPane: this.parent.options.shadowPane} : {},
+                        options.markerPane ? {pane      : options.markerPane} : {},
+                        options.shadowPane ? {shadowPane: options.shadowPane} : {},
                         bsMarkerOptions,
                         this.markerOptions()
                     );

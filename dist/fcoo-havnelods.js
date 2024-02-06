@@ -573,18 +573,7 @@ location.js,
             map.setView(this.latLng, map.getZoom(), {animate: false, reset: true});
 
             //Create marker by creaating geoJOSN-layer with only one marker
-            var geoJSON = this.parent.getGeoJSON({
-                    onlyLocationId: this.id,
-                    geoJSON: {
-                        onEachFeature: null,
-                        markerOptions: {
-                            noTooltip: true,
-                            noPopup  : true
-                        }
-                    }
-                });
-            geoJSON.addTo(map);
-
+            this.parent.getGeoJSON({onEachFeature: null, noTooltip: true, noPopup: true}, this.id).addTo(map);
 
             //Add button on map to center on geoJSON-elements
             map.addControl(
@@ -596,20 +585,14 @@ location.js,
                 })
             );
 
-
-
             //Save the map in the Location and sync the maps in different modal-modes
             this.maps = this.maps || {};
             this.maps[map._leaflet_id] = map;
             map.on('moveend zoomend', this._maps_update_center_and_zoom.bind(this) );
 
-
-
             //Resize the map and set view to geoJSON-objects when the outer element is resized
             $element.resize( function(){
                 map.invalidateSize();
-
-
             });
         },
 
@@ -1457,13 +1440,13 @@ console.log(options);
         },
 
         /*********************************************
-        getGeoJSON
+        getGeoJSON(options, locationId)
         *********************************************/
-        getGeoJSON: function(options = {}){
+        getGeoJSON: function(options = {}, locationId){
             var geoJSON = new L.GeoJSON.Havnelods(null, options);
             this.geoJSONList = this.geoJSONList || [];
             if (this.dataIsLoaded)
-                geoJSON.addData( this.getGeoJSONData(options) );
+                geoJSON.addData( this.getGeoJSONData(locationId) );
             else
                 this.geoJSONList.push( geoJSON );
             return geoJSON;
@@ -1473,13 +1456,13 @@ console.log(options);
         /*********************************************
         getGeoJSON
         *********************************************/
-        getGeoJSONData: function(options = {}){
+        getGeoJSONData: function(onlyLocationId){
             var result = {
                     type    : "FeatureCollection",
                     features: []
                 };
             this.list.forEach((location) => {
-                if (location.latLng && (!options.onlyLocationId ||  (location.id == options.onlyLocationId)))
+                if (location.latLng && (!onlyLocationId || (location.id == onlyLocationId)))
                     result.features.push({
                         type      : "Feature",
                         geometry  : {type: "Point", coordinates: [location.latLng.lng, location.latLng.lat]},
@@ -1789,7 +1772,7 @@ console.log(options);
         pointToLayer
         *********************************************/
         pointToLayer: function(geoJSONPoint){
-            return geoJSONPoint.properties.createMarker(this.options.markerOptions, this);
+            return geoJSONPoint.properties.createMarker(this.options);
         },
 
         /*********************************************

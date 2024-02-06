@@ -573,18 +573,7 @@ location.js,
             map.setView(this.latLng, map.getZoom(), {animate: false, reset: true});
 
             //Create marker by creaating geoJOSN-layer with only one marker
-            var geoJSON = this.parent.getGeoJSON({
-                    onlyLocationId: this.id,
-                    geoJSON: {
-                        onEachFeature: null,
-                        markerOptions: {
-                            noTooltip: true,
-                            noPopup  : true
-                        }
-                    }
-                });
-            geoJSON.addTo(map);
-
+            this.parent.getGeoJSON({onEachFeature: null, noTooltip: true, noPopup: true}, this.id).addTo(map);
 
             //Add button on map to center on geoJSON-elements
             map.addControl(
@@ -596,20 +585,14 @@ location.js,
                 })
             );
 
-
-
             //Save the map in the Location and sync the maps in different modal-modes
             this.maps = this.maps || {};
             this.maps[map._leaflet_id] = map;
             map.on('moveend zoomend', this._maps_update_center_and_zoom.bind(this) );
 
-
-
             //Resize the map and set view to geoJSON-objects when the outer element is resized
             $element.resize( function(){
                 map.invalidateSize();
-
-
             });
         },
 

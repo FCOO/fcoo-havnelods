@@ -130,13 +130,13 @@ console.log(options);
         },
 
         /*********************************************
-        getGeoJSON
+        getGeoJSON(options, locationId)
         *********************************************/
-        getGeoJSON: function(options = {}){
+        getGeoJSON: function(options = {}, locationId){
             var geoJSON = new L.GeoJSON.Havnelods(null, options);
             this.geoJSONList = this.geoJSONList || [];
             if (this.dataIsLoaded)
-                geoJSON.addData( this.getGeoJSONData(options) );
+                geoJSON.addData( this.getGeoJSONData(locationId) );
             else
                 this.geoJSONList.push( geoJSON );
             return geoJSON;
@@ -146,13 +146,13 @@ console.log(options);
         /*********************************************
         getGeoJSON
         *********************************************/
-        getGeoJSONData: function(options = {}){
+        getGeoJSONData: function(onlyLocationId){
             var result = {
                     type    : "FeatureCollection",
                     features: []
                 };
             this.list.forEach((location) => {
-                if (location.latLng && (!options.onlyLocationId ||  (location.id == options.onlyLocationId)))
+                if (location.latLng && (!onlyLocationId || (location.id == onlyLocationId)))
                     result.features.push({
                         type      : "Feature",
                         geometry  : {type: "Point", coordinates: [location.latLng.lng, location.latLng.lat]},
@@ -462,7 +462,7 @@ console.log(options);
         pointToLayer
         *********************************************/
         pointToLayer: function(geoJSONPoint){
-            return geoJSONPoint.properties.createMarker(this.options.markerOptions, this);
+            return geoJSONPoint.properties.createMarker(this.options);
         },
 
         /*********************************************

@@ -360,7 +360,7 @@ location.js,
                     header      : this.header,
 
                     maxHeight   : 260,
-                    width       : 260,
+                    width       : 265,  //or 270
                     clickable   : true,
 
                     fixedContent: this.fixedContent.bind(this),

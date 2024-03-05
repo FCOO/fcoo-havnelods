@@ -1346,13 +1346,13 @@ Setup to create content for different classes of Locations
     //Extend window.fcoo.Havnelods.options with leaflet = options for different leaflet objects
     nsHL.options.leaflet = nsHL.options.leaflet || {};
 
-    //window.Niord.options.leaflet.tileUrl = url for the tile-layer of the map inside the bsModal-window
+    //window.fcoo.Havnelods.options.leaflet.tileUrl = url for the tile-layer of the map inside the bsModal-window
     nsHL.options.leaflet.tileUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
-    //window.Niord.options.leaflet.attribute = attribute for the tile-layer of the map inside the bsModal-window
+    //window.fcoo.Havnelods.options.leaflet.attribute = attribute for the tile-layer of the map inside the bsModal-window
     nsHL.options.leaflet.attribution = '<i class="far fa-copyright"></i></i>&nbsp;<a target="_blank" href="https://www.openstreetmap.org/copyright/en">OpenStreetMap</a>';
 
-    //window.Niord.options.leaflet.mapOptions = options for map-objects in modal-windows
+    //window.fcoo.Havnelods.options.leaflet.mapOptions = options for map-objects in modal-windows
     nsHL.options.leaflet.mapOptions = {
         zoomControl         : false,
         bsZoomControl       : false,

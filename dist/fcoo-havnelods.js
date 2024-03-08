@@ -1347,7 +1347,7 @@ Setup to create content for different classes of Locations
     nsHL.options.leaflet = nsHL.options.leaflet || {};
 
     //window.fcoo.Havnelods.options.leaflet.tileUrl = url for the tile-layer of the map inside the bsModal-window
-    nsHL.options.leaflet.tileUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+    nsHL.options.leaflet.tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
 
     //window.fcoo.Havnelods.options.leaflet.attribute = attribute for the tile-layer of the map inside the bsModal-window
     nsHL.options.leaflet.attribution = '<i class="far fa-copyright"></i></i>&nbsp;<a target="_blank" href="https://www.openstreetmap.org/copyright/en">OpenStreetMap</a>';

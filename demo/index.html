@@ -127,27 +127,23 @@
             nsHL.options.getDefaultMap = function(){ return map };
             nsHL.options.modalIsExtended = true;
 
-            var HLDK = new nsHL.Havnelods_DK({
-                onClickPosition: function( location ){ console.log('LOCATION', location); }
-            });
-            
-            var HLGL = new nsHL.Havnelods_GL();
-            var HLBR = new nsHL.Havnelods_Bridges();
+			nsHL.options.smallTableWithAllLocations = true;
+
+			nsHL.getHavnelods_DK(hlDK => {
+                hlDK.getGeoJSON().addTo(map);
+                hlDK.getGeoJSON().addTo(map2);
+			}, {
+				onClickPosition: function( location ){ console.log('LOCATION', location) }
+			});
+			
+
+			nsHL.getHavnelods_GL(hlGL => hlGL.getGeoJSON().addTo(map) );
+			nsHL.getHavnelods_Bridges(hlBridges => hlBridges.getGeoJSON().addTo(map) );
 
 
             window.listAll = function(){
-                HLGL.asModal();
+				nsHL.getHavnelods_GL( hlGL => hlGL.asModal() );
             };
-
-            setTimeout(function(){
-
-                HLDK.getGeoJSON().addTo(map);
-                HLDK.getGeoJSON().addTo(map2);
-            
-                HLGL.getGeoJSON().addTo(map);
-                HLBR.getGeoJSON().addTo(map);
-           
-            }, 1000);
 
 
             fcoo.promiseList.promiseAll();

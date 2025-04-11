@@ -297,11 +297,15 @@ location.js,
             historyList.add( this.id );
             historyList._callOnUpdate();
 
-            var options = {
+            const isPhone    = ns.modernizrDevice.isPhone,
+                  isExtended = !isPhone && nsHL.options.modalIsExtended,
+                  options = {
                     header    : this.header,
 
                     flexWidth : true,
-                    extraWidth: true,
+                    extraWidth: !isPhone,
+                    fullScreenWithBorder: isPhone,
+                    allowFullScreen: true,                             
 
                     historyList: historyList,
 
@@ -309,11 +313,12 @@ location.js,
                     content     : this.accordionOptions({modalWidth:800, map:'small', multiOpen: true}),
                     extended: {
                         flexWidth   : true,
-                        megaWidth   : true,
+                        megaWidth   : !isPhone,
+                        fullScreenWithBorder: isPhone,
                         fixedContent: this.fixedContent.bind(this),
                         content     : this.accordionOptions({modalWidth:1200, map:'large', allOpen: true})
                     },
-                    isExtended: nsHL.options.modalIsExtended,
+                    isExtended: isExtended,
 
                     footer    : gst_footer,
                     buttons   : [this.buttonGST(false), locationGroup.buttonShowAll(false)],

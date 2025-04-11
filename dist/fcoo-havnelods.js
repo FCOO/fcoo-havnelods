@@ -297,11 +297,15 @@ location.js,
             historyList.add( this.id );
             historyList._callOnUpdate();
 
-            var options = {
+            const isPhone    = ns.modernizrDevice.isPhone,
+                  isExtended = !isPhone && nsHL.options.modalIsExtended,
+                  options = {
                     header    : this.header,
 
                     flexWidth : true,
-                    extraWidth: true,
+                    extraWidth: !isPhone,
+                    fullScreenWithBorder: isPhone,
+                    allowFullScreen: true,                             
 
                     historyList: historyList,
 
@@ -309,11 +313,12 @@ location.js,
                     content     : this.accordionOptions({modalWidth:800, map:'small', multiOpen: true}),
                     extended: {
                         flexWidth   : true,
-                        megaWidth   : true,
+                        megaWidth   : !isPhone,
+                        fullScreenWithBorder: isPhone,
                         fixedContent: this.fixedContent.bind(this),
                         content     : this.accordionOptions({modalWidth:1200, map:'large', allOpen: true})
                     },
-                    isExtended: nsHL.options.modalIsExtended,
+                    isExtended: isExtended,
 
                     footer    : gst_footer,
                     buttons   : [this.buttonGST(false), locationGroup.buttonShowAll(false)],
@@ -1325,6 +1330,49 @@ Setup to create content for different classes of Locations
         nsHL = ns.Havnelods = ns.Havnelods || {};
 
 
+
+    /***************************************************************
+    nsHL.havnelods[locationGroupId] = {
+        constructor  : Constructor for the LocationGroup
+        locationGroup: Current version of LocationGroup
+        loaded       : BOOLEAN
+        resolveList  : [] = list of methods to call when the locationGroup is created and loaded
+    }    
+    
+    nsObservations.getFCOOObservation(resolve) calls resolve with (ns.fcooObservations)
+    nsObservations.fcooObservations is created first time
+    ****************************************************************/
+    let havnelods = {};
+    
+    function getLocationGroup(id, constructor, resolve, options){
+        havnelods[id] = havnelods[id] || {
+                            constructor  : constructor,
+                            loaded       : false,
+                            resolveList  : []
+                        };                
+                            
+        //If the LocationGroup is loaded => jist resolve            
+        if (havnelods[id].loaded){
+            resolve(havnelods[id].locationGroup);
+            return;
+        }            
+                
+        //Else => Add to resiolveList and create LocationGroup (if needed)
+        havnelods[id].resolveList.push(resolve);
+            
+        havnelods[id].locationGroup = havnelods[id].locationGroup || new constructor(options, locationGroup_resolve.bind(null, id));                     
+    }
+    
+    function locationGroup_resolve(id, locationGroup){
+        havnelods[id].locationGroup = locationGroup;
+        havnelods[id].loaded = true;
+        havnelods[id].resolveList.forEach( resolve => resolve(locationGroup) );
+    }        
+    
+    
+    /***************************************************************
+    options 
+    ****************************************************************/
     //Extend Havnelods.options
     nsHL.options = $.extend( true, {
 
@@ -1383,18 +1431,23 @@ Setup to create content for different classes of Locations
     LocationGroup
     Generel constructor for group of Locations
     ***********************************************************************/
-    function LocationGroup(options){
+    function LocationGroup(options, globalResolve){
         this.options = $.extend(true, {}, this.options, options);
 
         //Add context-menu item
         this.addContextmenuItems([ this.buttonShowAll() ]);
+        
+        let resolve = function(data){ 
+                this.resolve(data);
+                globalResolve ? globalResolve(this) : null;
+            }.bind(this);
 
         //Load and add geoJSON-data
         this.list = [];
         window.Promise.getJSON(
             ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
             {},
-            this.resolve.bind(this)
+            resolve
         );
     }
 
@@ -1419,7 +1472,7 @@ Setup to create content for different classes of Locations
         /*********************************************
         resolve
         *********************************************/
-        resolve: function(data){
+        resolve: function(data){ 
             //data = []LOCATION
             this.list = [];
             data.forEach((options) => {
@@ -1544,15 +1597,20 @@ console.log(options);
                 bsTable.addRow( displayInSmallTable ? location.asSmallTableRow() : location.asTableRow() );
             });
 
+
+            const isPhone = ns.modernizrDevice.isPhone;
             var bsModalOptions = {
                 header     : {text: this.options.name},
                 buttons    : hasFilter ? [
                     {icon: nsHL.options.resetFilterIcon, text:{da:'Nulstil', en:'Reset'}, class:'min-width-5em', onClick: this.resetFilter.bind(this)       },
                     {icon: nsHL.options.filterIcon,      text:{da:'Filter', en:'Filter'}, class:'min-width-5em', onClick: this.filterAsModalForm.bind(this) }
                 ] : null,
-                flexWidth  : true,
-                megaWidth  : true,
+                flexWidth : true,
+                megaWidth: !isPhone,
+                fullScreenWithBorder: isPhone,
+                allowFullScreen: true,                             
 
+                
                 static       : true,
                 show         : false,
                 removeOnClose: true,
@@ -1681,11 +1739,11 @@ console.log(options);
     LocationGroup with danish harbors
     ***********************************************************************
     **********************************************************************/
-    nsHL.Havnelods_DK = function(options = {}){
+    nsHL.Havnelods_DK = function(options = {}, resolve){
         options.fileName = 'havnelods_DK.json';
         options.name = {da:'Havne i Danmark', en:'Harbors in Denmark'},
 
-        LocationGroup.call(this, options);
+        LocationGroup.call(this, options, resolve);
         this.locationConstructor = nsHL.Location_DK;
 
         this.getFilterItems = function(){
@@ -1700,17 +1758,24 @@ console.log(options);
     nsHL.Havnelods_DK.prototype = Object.create(LocationGroup.prototype);
 
 
+    
+    nsHL.getHavnelods_DK = function(resolve, options){
+        getLocationGroup('DK', nsHL.Havnelods_DK, resolve, options);
+    };
+
+
+
     /*********************************************************************
     **********************************************************************
     nsHL.Havnelods_GL(options)
     LocationGroup with Greenlandic towns, hamlets, and stations
     **********************************************************************
     **********************************************************************/
-    nsHL.Havnelods_GL = function(options = {}){
+    nsHL.Havnelods_GL = function(options = {}, resolve){
         options.fileName = 'havnelods_GL.json';
         options.name = {da: 'Byer, Bygder og Stationer i Grønland', en: 'Towns, Hamlets, and Stations in Greenland'},
 
-        LocationGroup.call(this, options);
+        LocationGroup.call(this, options, resolve);
         this.locationConstructor = nsHL.Location_GL;
 
         this.getFilterItems = function(){
@@ -1729,13 +1794,18 @@ console.log(options);
     };
     nsHL.Havnelods_GL.prototype = Object.create(LocationGroup.prototype);
 
+    nsHL.getHavnelods_GL = function(resolve, options){
+        getLocationGroup('GL', nsHL.Havnelods_GL, resolve, options);
+    };
+            
+    
     /*********************************************************************
     **********************************************************************
     nsHL.Havnelods_Bridges(options)
     LocationGroup with danish bridges
     **********************************************************************
     **********************************************************************/
-    nsHL.Havnelods_Bridges = function(options = {}){
+    nsHL.Havnelods_Bridges = function(options = {}, resolve){
         $.extend(options, {
             idName    : 'BRO_ID',
             fileName  : 'havnelods_BR.json',
@@ -1745,11 +1815,20 @@ console.log(options);
 
             noFilter  : true,
         });
-        LocationGroup.call(this, options);
+
+        LocationGroup.call(this, options, resolve);
+        
         this.locationConstructor = nsHL.Location_Bridges;
     };
     nsHL.Havnelods_Bridges.prototype = Object.create(LocationGroup.prototype);
 
+    nsHL.getHavnelods_Bridges = function(resolve, options){
+        getLocationGroup('Bridges', nsHL.Havnelods_Bridges, resolve, options);
+    };
+            
+
+    
+    
     /**********************************************************************
     ***********************************************************************
     L.GeoJSON.Havnelods(options)

@@ -233,7 +233,7 @@ location.js,
             if (this.setup.externalUrl)
                 return {
                     id     :'dhl_show'+this.id,
-                    icon   : 'far fa-link',
+                    icon   : $.bsExternalLinkIcon,
                     text   : ['abbr:gst', small ? {da: 'ver.', en:'ver.'} : {da: ' version', en:' Version'}],
                     class  : small ? 'min-width-5em' : 'min-width-8em',
                     onClick: this.showGST.bind(this)
@@ -305,7 +305,7 @@ location.js,
                     flexWidth : true,
                     extraWidth: !isPhone,
                     fullScreenWithBorder: isPhone,
-                    allowFullScreen: true,                             
+                    allowFullScreen: true,
 
                     historyList: historyList,
 

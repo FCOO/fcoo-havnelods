@@ -129,19 +129,11 @@
 
         //Load and add geoJSON-data
         this.list = [];
-        /*
         window.Promise.getJSON(
             ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
             {},
             resolve
         );
-        */
-        ns.promiseList.append({
-            fileName: {mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName},
-            resolve : resolve,
-            wait    : true
-        });
-
     }
 
     /***********************************************************************************************

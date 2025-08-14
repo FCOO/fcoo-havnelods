@@ -22,41 +22,41 @@
         locationGroup: Current version of LocationGroup
         loaded       : BOOLEAN
         resolveList  : [] = list of methods to call when the locationGroup is created and loaded
-    }    
-    
+    }
+
     nsObservations.getFCOOObservation(resolve) calls resolve with (ns.fcooObservations)
     nsObservations.fcooObservations is created first time
     ****************************************************************/
     let havnelods = {};
-    
+
     function getLocationGroup(id, constructor, resolve, options){
         havnelods[id] = havnelods[id] || {
                             constructor  : constructor,
                             loaded       : false,
                             resolveList  : []
-                        };                
-                            
-        //If the LocationGroup is loaded => jist resolve            
+                        };
+
+        //If the LocationGroup is loaded => jist resolve
         if (havnelods[id].loaded){
             resolve(havnelods[id].locationGroup);
             return;
-        }            
-                
+        }
+
         //Else => Add to resiolveList and create LocationGroup (if needed)
         havnelods[id].resolveList.push(resolve);
-            
-        havnelods[id].locationGroup = havnelods[id].locationGroup || new constructor(options, locationGroup_resolve.bind(null, id));                     
+
+        havnelods[id].locationGroup = havnelods[id].locationGroup || new constructor(options, locationGroup_resolve.bind(null, id));
     }
-    
+
     function locationGroup_resolve(id, locationGroup){
         havnelods[id].locationGroup = locationGroup;
         havnelods[id].loaded = true;
         havnelods[id].resolveList.forEach( resolve => resolve(locationGroup) );
-    }        
-    
-    
+    }
+
+
     /***************************************************************
-    options 
+    options
     ****************************************************************/
     //Extend Havnelods.options
     nsHL.options = $.extend( true, {
@@ -121,22 +121,28 @@
 
         //Add context-menu item
         this.addContextmenuItems([ this.buttonShowAll() ]);
-        
-        let resolve = function(data){ 
+
+        let resolve = function(data){
                 this.resolve(data);
                 globalResolve ? globalResolve(this) : null;
             }.bind(this);
 
         //Load and add geoJSON-data
         this.list = [];
+        /*
         window.Promise.getJSON(
             ns.dataFilePath({mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName}),
             {},
             resolve
         );
+        */
+        ns.promiseList.append({
+            fileName: {mainDir: true, subDir: this.options.subDir, fileName: this.options.fileName},
+            resolve : resolve,
+            wait    : true
+        });
+
     }
-
-
 
     /***********************************************************************************************
     LocationGroup.prototype
@@ -157,7 +163,7 @@
         /*********************************************
         resolve
         *********************************************/
-        resolve: function(data){ 
+        resolve: function(data){
             //data = []LOCATION
             this.list = [];
             data.forEach((options) => {
@@ -293,9 +299,9 @@ console.log(options);
                 flexWidth : true,
                 megaWidth: !isPhone,
                 fullScreenWithBorder: isPhone,
-                allowFullScreen: true,                             
+                allowFullScreen: true,
 
-                
+
                 static       : true,
                 show         : false,
                 removeOnClose: true,
@@ -443,7 +449,7 @@ console.log(options);
     nsHL.Havnelods_DK.prototype = Object.create(LocationGroup.prototype);
 
 
-    
+
     nsHL.getHavnelods_DK = function(resolve, options){
         getLocationGroup('DK', nsHL.Havnelods_DK, resolve, options);
     };
@@ -482,8 +488,8 @@ console.log(options);
     nsHL.getHavnelods_GL = function(resolve, options){
         getLocationGroup('GL', nsHL.Havnelods_GL, resolve, options);
     };
-            
-    
+
+
     /*********************************************************************
     **********************************************************************
     nsHL.Havnelods_Bridges(options)
@@ -502,7 +508,7 @@ console.log(options);
         });
 
         LocationGroup.call(this, options, resolve);
-        
+
         this.locationConstructor = nsHL.Location_Bridges;
     };
     nsHL.Havnelods_Bridges.prototype = Object.create(LocationGroup.prototype);
@@ -510,10 +516,10 @@ console.log(options);
     nsHL.getHavnelods_Bridges = function(resolve, options){
         getLocationGroup('Bridges', nsHL.Havnelods_Bridges, resolve, options);
     };
-            
 
-    
-    
+
+
+
     /**********************************************************************
     ***********************************************************************
     L.GeoJSON.Havnelods(options)
